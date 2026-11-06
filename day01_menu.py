@@ -1,3 +1,4 @@
+
 # AyushmanSathi - AI Healthcare Assistant
 # Day 01: Menu-Driven Program
 
@@ -12,8 +13,6 @@ while True:
 
     choice = input("\nEnter your choice: ")
 
-    choice = input("\nEnter your choice: ")
-
     if choice == "":
         print("Input cannot be empty. Please try again.")
         continue
@@ -21,8 +20,9 @@ while True:
     elif choice == "1":
 
         print("\nAbout AyushmanSathi")
-        print("AyushmanSathi is a GenAI-powered healthcare assistant.")
-        print("It helps users access general healthcare information.")
+        print("AyushmanSathi is an AI-powered healthcare information assistant. It aims to make reliable healthcare information accessible to everyone.")
+        print("It provides information on various health topics, symptoms, and preventive measures based on trusted sources like WHO and MoHFW.")
+        print("Our goal is to empower patients, caregivers, and the general public with accurate healthcare knowledge.")
 
     elif choice == "2":
 
@@ -63,4 +63,3 @@ while True:
 
         print("\nThank you for using AyushmanSathi!")
         break
-
