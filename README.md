@@ -1,5 +1,4 @@
-# AyushmanSathi – AI-Powered Healthcare Assistant
-
+## 🏥 AyushmanSathi – AI-Powered Healthcare Assistant
 ## Project Overview
 
 AyushmanSathi is a Generative AI-based healthcare assistant designed to make general healthcare information more accessible and understandable. It aims to provide users with a conversational interface where they can ask health-related questions and receive informative responses using trusted healthcare resources.
