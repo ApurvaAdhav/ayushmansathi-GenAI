@@ -26,6 +26,6 @@ AyushmanSathi aims to provide a conversational AI platform that helps users expl
 
 ## Project Development
 
-Developed as part of the GenAI Training Program at Sanjivani.
+Developing as part of the GenAI Training Program at Sanjivani.
 
 **Repository:** ayushmansathi-genAI
