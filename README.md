@@ -56,6 +56,45 @@ http://127.0.0.1:8000/docs
   `GET /search?q=eligibility` – Search healthcare records.
   `POST /questions` – Submit a healthcare question.
 
+  ## Key Features
+
+- Healthcare information retrieval from extracted public healthcare documents.
+- FastAPI-based REST API.
+- Keyword-based healthcare record search.
+- TF-IDF and cosine similarity-based smart search.
+- Individual healthcare record retrieval using record IDs.
+- Interactive API documentation through Swagger UI.
+
+## Project Structure
+
+```text
+ayushmansathi-genAI/
+│
+├── analysis/
+│   └── explore.py
+│
+├── app/
+│   ├── main.py
+│   ├── records.py
+│   ├── smart_search.py
+│   ├── ingest.py
+│   ├── fetch.py
+│   └── models.py
+│
+├── data/
+│   ├── records.json
+│   └── sample_records.py
+│
+├── day01_intro.py
+├── day01_menu.py
+├── requirements.txt
+├── README.md
+└── .gitignore
+```
+## Current Development Status
+
+The current implementation includes healthcare document processing, record retrieval, FastAPI endpoints, and TF-IDF-based smart search. Further Generative AI capabilities are planned for subsequent development stages.
+
 ## Project Development
 
 Developing as part of the GenAI Training Program at Sanjivani.
