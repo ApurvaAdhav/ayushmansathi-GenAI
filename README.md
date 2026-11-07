@@ -22,6 +22,39 @@ Accessing reliable healthcare information can be challenging due to scattered re
 
 AyushmanSathi aims to provide a conversational AI platform that helps users explore healthcare information through natural language interactions. The system will focus on providing understandable responses based on trusted healthcare resources.
 
+## How to Run the API
+
+1. Activate the virtual environment:
+
+```bash
+.venv\Scripts\activate
+```
+
+2. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Start the FastAPI server:
+
+```bash
+python -m uvicorn app.main:app --reload
+```
+
+4. Open Swagger UI in your browser:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+### Available API Endpoints
+
+  `GET /health` – Check API status.
+  `GET /records` – Get records with an optional limit.
+  `GET /records/{id}` – Get a specific record.
+  `GET /search?q=eligibility` – Search healthcare records.
+  `POST /questions` – Submit a healthcare question.
 
 ## Project Development
 

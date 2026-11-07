@@ -1,2 +1,6 @@
-pypdf
 requests
+pypdf
+fastapi
+uvicorn
+pandas
+scikit-learn
