@@ -1,0 +1,26 @@
+Answer the user's healthcare question using the relevant information provided in the healthcare context.
+
+Instructions:
+1. Understand the user's question.
+2. Use the provided context to prepare the answer.
+3. Use simple and clear language.
+4. Keep the answer short and relevant.
+5. Do not invent healthcare facts or scheme rules.
+6. If the answer is not available in the context, clearly say so.
+7. Do not provide medical diagnoses or prescribe medicines.
+
+Return only valid JSON in this format:
+
+{
+  "answer": "Your answer here",
+  "confidence": 0.0,
+  "follow_up": "Your follow-up question here"
+}
+
+The confidence must be a number between 0 and 1.
+
+User Question:
+{question}
+
+Relevant Healthcare Information:
+{context}

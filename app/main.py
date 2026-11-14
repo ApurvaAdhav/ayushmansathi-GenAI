@@ -1,32 +1,33 @@
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
 from app.records import load_records, get_by_id, search
 from app.smart_search import smart_search
 from app.llm import generate_response
-from pydantic import BaseModel
 from pathlib import Path
 import json
 
-# Request models
+BASE_DIR = Path(__file__).resolve().parent.parent
+PROMPT_DIR = BASE_DIR / "prompts"
+
+
 class Question(BaseModel):
     question: str
 
 
 class ChatRequest(BaseModel):
     question: str
-    task: str = "general"
+    task: str = "task1"
 
 
-# Response model
 class ChatResponse(BaseModel):
     answer: str
-    confidence: str
+    confidence: float = Field(ge=0, le=1)
     follow_up: str
 
 
 app = FastAPI(title="AyushmanSathi API")
 
 
-# Health check endpoint
 @app.get("/health")
 def health_check():
     return {
@@ -35,37 +36,29 @@ def health_check():
     }
 
 
-# Get records with a limit
 @app.get("/records")
 def get_records(limit: int = 10):
     records = load_records()
-
     return {
         "total_records": len(records),
         "records": records[:limit]
     }
 
 
-# Get a single record by ID
 @app.get("/records/{record_id}")
 def get_record(record_id: int):
     records = load_records()
     record = get_by_id(records, record_id)
 
     if record is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Record not found"
-        )
+        raise HTTPException(status_code=404, detail="Record not found")
 
     return record
 
 
-# Search healthcare records
 @app.get("/search")
 def search_records(q: str):
     results = smart_search(q)
-
     return {
         "query": q,
         "total_results": len(results),
@@ -73,7 +66,6 @@ def search_records(q: str):
     }
 
 
-# Ask a healthcare question
 @app.post("/questions")
 def ask_question(data: Question):
     records = load_records()
@@ -86,67 +78,77 @@ def ask_question(data: Question):
     }
 
 
-# AI Chat endpoint
 @app.post("/chat", response_model=ChatResponse)
 def chat(data: ChatRequest):
 
-    # Select task prompt
-    if data.task == "schemes":
-        prompt_file = "task2.txt"
-    else:
-        prompt_file = "task1.txt"
+    if data.task not in ["task1", "task2"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Task must be task1 or task2"
+        )
 
-    # Read prompt files
-    prompt_dir = Path(__file__).resolve().parent.parent / "prompts"
-
-    system_prompt = (prompt_dir / "system.txt").read_text(
+    # Load system and task prompts
+    system_prompt = (PROMPT_DIR / "system.txt").read_text(
         encoding="utf-8"
     )
 
-    task_prompt = (prompt_dir / prompt_file).read_text(
+    task_prompt = (PROMPT_DIR / f"{data.task}.txt").read_text(
         encoding="utf-8"
     )
 
-    # Prepare complete prompt
+    # Retrieve relevant healthcare records
+    records = smart_search(data.question)
+
+    context = "\n\n".join(
+        record["rule_topic"] + "\n" + record["rule_text"]
+        for record in records
+    )
+
+    if not context:
+        context = "No relevant healthcare information was found."
+
+    # Insert question and context into task prompt
+    formatted_task = (
+    task_prompt
+    .replace("{question}", data.question)
+    .replace("{context}", context)
+    )
+
     full_prompt = f"""
 {system_prompt}
 
-{task_prompt}
+{formatted_task}
 
-User Question: {data.question}
-
-Return ONLY valid JSON in this format:
+Return only valid JSON:
 {{
-    "answer": "Your answer here",
-    "confidence": "High, Medium, or Low",
-    "follow_up": "A relevant follow-up question"
+    "answer": "Your answer",
+    "confidence": 0.0,
+    "follow_up": "Your follow-up question"
 }}
 """
 
-    # Generate response using Gemini
     try:
         response = generate_response(full_prompt)
 
-        # Clean response
         cleaned_response = (
-            response
-            .replace("```json", "")
+            response.replace("```json", "")
             .replace("```", "")
             .strip()
         )
 
-        # Convert response into JSON
         result = json.loads(cleaned_response)
 
         return ChatResponse(
             answer=result["answer"],
-            confidence=result["confidence"],
+            confidence=float(result["confidence"]),
             follow_up=result["follow_up"]
         )
 
-    except (json.JSONDecodeError, KeyError, TypeError):
-        return ChatResponse(
-            answer=response,
-            confidence="Low",
-            follow_up="Would you like to know more?"
+    except (json.JSONDecodeError, KeyError, TypeError, ValueError):
+        raise HTTPException(
+            status_code=502,
+            detail="Gemini returned an invalid response format"
         )
+
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail=str(e))
