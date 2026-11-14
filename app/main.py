@@ -1,14 +1,22 @@
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+from pathlib import Path
+import json
+
 from app.records import load_records, get_by_id, search
 from app.smart_search import smart_search
 from app.llm import generate_response
-from pathlib import Path
-import json
+from app.vectorstore import semantic_search
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROMPT_DIR = BASE_DIR / "prompts"
 
+
+# -----------------------------
+# Request and Response Models
+# -----------------------------
 
 class Question(BaseModel):
     question: str
@@ -25,8 +33,16 @@ class ChatResponse(BaseModel):
     follow_up: str
 
 
+# -----------------------------
+# Initialize FastAPI
+# -----------------------------
+
 app = FastAPI(title="AyushmanSathi API")
 
+
+# -----------------------------
+# 1. Health Check
+# -----------------------------
 
 @app.get("/health")
 def health_check():
@@ -36,14 +52,23 @@ def health_check():
     }
 
 
+# -----------------------------
+# 2. Get All Records
+# -----------------------------
+
 @app.get("/records")
 def get_records(limit: int = 10):
     records = load_records()
+
     return {
         "total_records": len(records),
         "records": records[:limit]
     }
 
+
+# -----------------------------
+# 3. Get Record by ID
+# -----------------------------
 
 @app.get("/records/{record_id}")
 def get_record(record_id: int):
@@ -51,20 +76,76 @@ def get_record(record_id: int):
     record = get_by_id(records, record_id)
 
     if record is None:
-        raise HTTPException(status_code=404, detail="Record not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Record not found"
+        )
 
     return record
 
 
+# -----------------------------
+# 4. Keyword / TF-IDF Search
+# -----------------------------
+
 @app.get("/search")
 def search_records(q: str):
     results = smart_search(q)
+
     return {
         "query": q,
         "total_results": len(results),
         "results": results
     }
 
+
+# -----------------------------
+# 5. Semantic Search using ChromaDB
+# -----------------------------
+
+@app.get("/search/semantic")
+def search_semantic(q: str, limit: int = 5):
+
+    if not q.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Search query cannot be empty"
+        )
+
+    if limit < 1 or limit > 20:
+        raise HTTPException(
+            status_code=400,
+            detail="Limit must be between 1 and 20"
+        )
+
+    try:
+        results = semantic_search(
+            query=q,
+            n_results=limit
+        )
+
+        return {
+            "query": q,
+            "total_results": len(results),
+            "results": results
+        }
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Semantic search failed: {str(e)}"
+        )
+
+
+# -----------------------------
+# 6. Ask Question
+# -----------------------------
 
 @app.post("/questions")
 def ask_question(data: Question):
@@ -78,6 +159,10 @@ def ask_question(data: Question):
     }
 
 
+# -----------------------------
+# 7. Chat with Gemini
+# -----------------------------
+
 @app.post("/chat", response_model=ChatResponse)
 def chat(data: ChatRequest):
 
@@ -87,7 +172,6 @@ def chat(data: ChatRequest):
             detail="Task must be task1 or task2"
         )
 
-    # Load system and task prompts
     system_prompt = (PROMPT_DIR / "system.txt").read_text(
         encoding="utf-8"
     )
@@ -96,7 +180,6 @@ def chat(data: ChatRequest):
         encoding="utf-8"
     )
 
-    # Retrieve relevant healthcare records
     records = smart_search(data.question)
 
     context = "\n\n".join(
@@ -107,11 +190,10 @@ def chat(data: ChatRequest):
     if not context:
         context = "No relevant healthcare information was found."
 
-    # Insert question and context into task prompt
     formatted_task = (
-    task_prompt
-    .replace("{question}", data.question)
-    .replace("{context}", context)
+        task_prompt
+        .replace("{question}", data.question)
+        .replace("{context}", context)
     )
 
     full_prompt = f"""
@@ -151,4 +233,7 @@ Return only valid JSON:
         )
 
     except RuntimeError as e:
-        raise HTTPException(status_code=502, detail=str(e))
+        raise HTTPException(
+            status_code=502,
+            detail=str(e)
+        )
