@@ -156,3 +156,4 @@ The objective is to compare the response quality, clarity, accuracy, context usa
 - **Answer:** Based on the provided guidelines, an unspecified surgical package can be used for treatments or procedures that are not included in the listed interventions, subject to applicable criteria and rules. It is intended for surgical treatments. The response also discusses pre-authorisation, package selection, and exclusions.
 - **Confidence:** 0.95
 - **Follow-up:** What are the specific exclusions mentioned under PM-JAY guidelines for treatment?
+- 

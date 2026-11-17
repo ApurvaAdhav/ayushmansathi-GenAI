@@ -6,7 +6,10 @@ from app.chunking import create_chunks
 from app.embed import generate_embeddings
 
 
-# Initialize persistent ChromaDB
+# --------------------------------------------------
+# 1. Initialize ChromaDB
+# --------------------------------------------------
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = BASE_DIR / "data" / "chroma_db"
 
@@ -14,17 +17,23 @@ client = chromadb.PersistentClient(path=str(DB_PATH))
 
 collection = client.get_or_create_collection(
     name="ayushmansathi_documents",
-    metadata={"description": "AyushmanSathi healthcare document chunks"}
+    metadata={
+        "description": "AyushmanSathi healthcare document chunks"
+    }
 )
 
 
-# Query expansion for PM-JAY-specific questions
+# --------------------------------------------------
+# 2. Query Expansion
+# --------------------------------------------------
+
 QUERY_EXPANSIONS = {
     "personal eligibility": (
         "PM-JAY beneficiary identification process, SECC database, "
         "eligible rural and urban families, beneficiary list, "
         "eligibility verification and authorized beneficiary checking"
     ),
+
     "unspecified package": (
         "unspecified surgical procedure package, procedures not listed "
         "in the Health Benefit Package HBP, unspecified package guidelines, "
@@ -38,28 +47,58 @@ def expand_query(query):
 
     query_lower = query.lower()
 
-    if "personally eligible" in query_lower or "personal eligibility" in query_lower:
-        return query + " " + QUERY_EXPANSIONS["personal eligibility"]
+    if (
+        "personally eligible" in query_lower
+        or "personal eligibility" in query_lower
+    ):
+        return (
+            query + " " +
+            QUERY_EXPANSIONS["personal eligibility"]
+        )
 
     if "unspecified package" in query_lower:
-        return query + " " + QUERY_EXPANSIONS["unspecified package"]
+        return (
+            query + " " +
+            QUERY_EXPANSIONS["unspecified package"]
+        )
 
     return query
 
 
-# Store document chunks and embeddings
-def store_chunks():
+# --------------------------------------------------
+# 3. Store Document Chunks and Embeddings
+# --------------------------------------------------
 
-    chunks = create_chunks()
+def store_chunks(chunk_size=1000, overlap=150):
+    """
+    Create chunks using the selected configuration
+    and rebuild the ChromaDB collection.
+    """
+
+    chunks = create_chunks(
+        chunk_size=chunk_size,
+        overlap=overlap
+    )
 
     if not chunks:
         print("No chunks available to store.")
         return
 
+    # Delete existing chunks before rebuilding the index.
+    existing = collection.get(include=["metadatas"])
+    existing_ids = existing.get("ids", [])
+
+    if existing_ids:
+        collection.delete(ids=existing_ids)
+
+    # Prepare documents, embeddings and IDs.
     texts = [chunk["text"] for chunk in chunks]
+
     embeddings = generate_embeddings(texts)
+
     ids = [chunk["chunk_id"] for chunk in chunks]
 
+    # Prepare metadata.
     metadatas = [
         {
             "title": chunk["title"],
@@ -70,6 +109,7 @@ def store_chunks():
         for chunk in chunks
     ]
 
+    # Store in ChromaDB.
     collection.upsert(
         ids=ids,
         documents=texts,
@@ -77,12 +117,21 @@ def store_chunks():
         metadatas=metadatas
     )
 
-    print("Chunks stored successfully!")
+    print("\nChunks stored successfully!")
+    print("Chunk size:", chunk_size)
+    print("Overlap:", overlap)
     print("Total stored chunks:", collection.count())
 
 
-# Semantic search
+# --------------------------------------------------
+# 4. Semantic Search
+# --------------------------------------------------
+
 def semantic_search(query, n_results=5):
+    """
+    Retrieve the most relevant chunks using
+    semantic similarity.
+    """
 
     if not query or not query.strip():
         raise ValueError("Search query cannot be empty.")
@@ -94,15 +143,23 @@ def semantic_search(query, n_results=5):
 
     n_results = min(n_results, total_chunks)
 
-    # Expand query before generating embedding
+    # Expand the query.
     expanded_query = expand_query(query)
 
-    query_embedding = generate_embeddings([expanded_query])[0]
+    # Generate query embedding.
+    query_embedding = generate_embeddings(
+        [expanded_query]
+    )[0]
 
+    # Search ChromaDB.
     results = collection.query(
         query_embeddings=[query_embedding],
         n_results=n_results,
-        include=["documents", "metadatas", "distances"]
+        include=[
+            "documents",
+            "metadatas",
+            "distances"
+        ]
     )
 
     search_results = []
@@ -119,7 +176,10 @@ def semantic_search(query, n_results=5):
     return search_results
 
 
-# Test the vector database
+# --------------------------------------------------
+# 5. Test the Vector Database
+# --------------------------------------------------
+
 if __name__ == "__main__":
 
     store_chunks()

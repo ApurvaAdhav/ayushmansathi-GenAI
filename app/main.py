@@ -8,6 +8,7 @@ from app.records import load_records, get_by_id, search
 from app.smart_search import smart_search
 from app.llm import generate_response
 from app.vectorstore import semantic_search
+from app.rag import ask_question as rag_ask_question
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,6 +32,11 @@ class ChatResponse(BaseModel):
     answer: str
     confidence: float = Field(ge=0, le=1)
     follow_up: str
+
+
+class AskRequest(BaseModel):
+    question: str
+    top_k: int = Field(default=5, ge=1, le=20)
 
 
 # -----------------------------
@@ -144,11 +150,11 @@ def search_semantic(q: str, limit: int = 5):
 
 
 # -----------------------------
-# 6. Ask Question
+# 6. Search Healthcare Questions
 # -----------------------------
 
 @app.post("/questions")
-def ask_question(data: Question):
+def search_questions(data: Question):
     records = load_records()
     results = search(records, data.question)
 
@@ -172,31 +178,32 @@ def chat(data: ChatRequest):
             detail="Task must be task1 or task2"
         )
 
-    system_prompt = (PROMPT_DIR / "system.txt").read_text(
-        encoding="utf-8"
-    )
+    try:
+        system_prompt = (PROMPT_DIR / "system.txt").read_text(
+            encoding="utf-8"
+        )
 
-    task_prompt = (PROMPT_DIR / f"{data.task}.txt").read_text(
-        encoding="utf-8"
-    )
+        task_prompt = (PROMPT_DIR / f"{data.task}.txt").read_text(
+            encoding="utf-8"
+        )
 
-    records = smart_search(data.question)
+        records = smart_search(data.question)
 
-    context = "\n\n".join(
-        record["rule_topic"] + "\n" + record["rule_text"]
-        for record in records
-    )
+        context = "\n\n".join(
+            record["rule_topic"] + "\n" + record["rule_text"]
+            for record in records
+        )
 
-    if not context:
-        context = "No relevant healthcare information was found."
+        if not context:
+            context = "No relevant healthcare information was found."
 
-    formatted_task = (
-        task_prompt
-        .replace("{question}", data.question)
-        .replace("{context}", context)
-    )
+        formatted_task = (
+            task_prompt
+            .replace("{question}", data.question)
+            .replace("{context}", context)
+        )
 
-    full_prompt = f"""
+        full_prompt = f"""
 {system_prompt}
 
 {formatted_task}
@@ -209,7 +216,6 @@ Return only valid JSON:
 }}
 """
 
-    try:
         response = generate_response(full_prompt)
 
         cleaned_response = (
@@ -236,4 +242,44 @@ Return only valid JSON:
         raise HTTPException(
             status_code=502,
             detail=str(e)
+        )
+
+
+# -----------------------------
+# 8. RAG Question Answering
+# -----------------------------
+
+@app.post("/ask")
+def ask(data: AskRequest):
+
+    if not data.question.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Question cannot be empty"
+        )
+
+    try:
+        result = rag_ask_question(
+            question=data.question,
+            top_k=data.top_k
+        )
+
+        return result
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
+
+    except RuntimeError as e:
+        raise HTTPException(
+            status_code=502,
+            detail=str(e)
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"RAG question answering failed: {str(e)}"
         )

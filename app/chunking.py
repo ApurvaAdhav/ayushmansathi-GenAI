@@ -1,3 +1,4 @@
+
 from app.records import load_records
 
 CHUNK_SIZE = 1000
@@ -12,7 +13,6 @@ def split_text(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
 
     while start < len(text):
         end = start + chunk_size
-
         chunk = text[start:end].strip()
 
         if chunk:
@@ -26,12 +26,16 @@ def split_text(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
     return chunks
 
 
-def create_chunks():
+def create_chunks(chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
     records = load_records()
     all_chunks = []
 
     for record in records:
-        text_chunks = split_text(record["rule_text"])
+        text_chunks = split_text(
+            record["rule_text"],
+            chunk_size=chunk_size,
+            overlap=overlap
+        )
 
         for index, chunk in enumerate(text_chunks, start=1):
             all_chunks.append({
@@ -50,5 +54,7 @@ if __name__ == "__main__":
     chunks = create_chunks()
 
     print("Total chunks:", len(chunks))
-    print("\nFirst chunk:")
-    print(chunks[0])
+
+    if chunks:
+        print("\nFirst chunk:")
+        print(chunks[0])

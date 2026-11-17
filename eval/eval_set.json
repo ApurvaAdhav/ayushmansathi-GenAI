@@ -1,0 +1,78 @@
+
+[
+  {
+    "id": 1,
+    "question": "What is the maximum health coverage under PM-JAY?",
+    "expected": "Up to Rs. 5 lakh per eligible family per year."
+  },
+  {
+    "id": 2,
+    "question": "Which rural families are eligible for PM-JAY?",
+    "expected": "Eligible rural families are identified using SECC deprivation categories and applicable inclusion criteria."
+  },
+  {
+    "id": 3,
+    "question": "How are PM-JAY beneficiaries identified?",
+    "expected": "Beneficiaries are identified using SECC data and eligible RSBY beneficiary records."
+  },
+  {
+    "id": 4,
+    "question": "What is pre-authorisation in PM-JAY?",
+    "expected": "It is approval required for specified treatment packages before treatment."
+  },
+  {
+    "id": 5,
+    "question": "What documents are needed for pre-authorisation?",
+    "expected": "Hospitals must submit mandatory clinical documents and investigation reports for the selected package."
+  },
+  {
+    "id": 6,
+    "question": "Can you verify whether I am personally eligible for PM-JAY?",
+    "expected": "I don't know. Personal eligibility cannot be verified from the available documents."
+  },
+  {
+    "id": 7,
+    "question": "What happens in emergency pre-authorisation cases?",
+    "expected": "Hospitals can obtain a pre-authorisation code through the insurer, trust or designated call centre and submit the required information."
+  },
+  {
+    "id": 8,
+    "question": "What is the purpose of the unspecified package?",
+    "expected": "It supports eligible surgical procedures that are not listed in the standard package list, subject to applicable approval rules."
+  },
+  {
+    "id": 9,
+    "question": "When can an unspecified package above one lakh rupees be used?",
+    "expected": "Only in exceptional circumstances or for life-saving conditions, subject to approval."
+  },
+  {
+    "id": 10,
+    "question": "Can a beneficiary receive treatment at a non-empanelled hospital?",
+    "expected": "The answer must follow the applicable referral and exceptional-case rules in the source documents."
+  },
+  {
+    "id": 11,
+    "question": "What is the role of an empanelled hospital?",
+    "expected": "It provides covered services to eligible beneficiaries under PM-JAY and follows scheme procedures."
+  },
+  {
+    "id": 12,
+    "question": "Are outpatient consultations covered under PM-JAY?",
+    "expected": "The answer must be supported by the available scheme documents; do not assume coverage."
+  },
+  {
+    "id": 13,
+    "question": "What is the annual coverage limit for an eligible PM-JAY family?",
+    "expected": "Up to Rs. 5 lakh per family per year."
+  },
+  {
+    "id": 14,
+    "question": "Can you tell me today's weather in Kopargaon?",
+    "expected": "I don't know. The available healthcare documents do not contain weather information."
+  },
+  {
+    "id": 15,
+    "question": "What is the process for submitting a pre-authorisation request?",
+    "expected": "The hospital submits the request with the required clinical documents and investigation reports through the applicable system."
+  }
+]

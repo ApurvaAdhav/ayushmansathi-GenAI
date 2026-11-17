@@ -1,0 +1,792 @@
+{
+    "total_questions": 15,
+    "configurations": [
+        {
+            "configuration": {
+                "name": "Configuration A",
+                "chunk_size": 500,
+                "top_k": 3
+            },
+            "total_questions": 15,
+            "scored_questions": 15,
+            "average_keyword_score": 0.3929,
+            "citation_rate": 1.0,
+            "results": [
+                {
+                    "id": 1,
+                    "question": "What is the maximum health coverage under PM-JAY?",
+                    "expected": "Up to Rs. 5 lakh per eligible family per year.",
+                    "expected_terms": [
+                        "5",
+                        "lakh",
+                        "eligible",
+                        "family",
+                        "year"
+                    ],
+                    "matched_terms": [
+                        "5"
+                    ],
+                    "keyword_score": 0.2,
+                    "retrieved_chunks": 3,
+                    "citations_available": true
+                },
+                {
+                    "id": 2,
+                    "question": "Which rural families are eligible for PM-JAY?",
+                    "expected": "Eligible rural families are identified using SECC deprivation categories and applicable inclusion criteria.",
+                    "expected_terms": [
+                        "eligible",
+                        "rural",
+                        "families",
+                        "identified",
+                        "using",
+                        "secc",
+                        "deprivation",
+                        "categories",
+                        "applicable",
+                        "inclusion",
+                        "criteria"
+                    ],
+                    "matched_terms": [
+                        "eligible",
+                        "rural",
+                        "families",
+                        "identified",
+                        "secc",
+                        "deprivation",
+                        "categories",
+                        "inclusion",
+                        "criteria"
+                    ],
+                    "keyword_score": 0.8182,
+                    "retrieved_chunks": 3,
+                    "citations_available": true
+                },
+                {
+                    "id": 3,
+                    "question": "How are PM-JAY beneficiaries identified?",
+                    "expected": "Beneficiaries are identified using SECC data and eligible RSBY beneficiary records.",
+                    "expected_terms": [
+                        "beneficiaries",
+                        "identified",
+                        "using",
+                        "secc",
+                        "data",
+                        "eligible",
+                        "rsby",
+                        "beneficiary",
+                        "records"
+                    ],
+                    "matched_terms": [
+                        "beneficiaries",
+                        "secc",
+                        "data",
+                        "eligible",
+                        "beneficiary"
+                    ],
+                    "keyword_score": 0.5556,
+                    "retrieved_chunks": 3,
+                    "citations_available": true
+                },
+                {
+                    "id": 4,
+                    "question": "What is pre-authorisation in PM-JAY?",
+                    "expected": "It is approval required for specified treatment packages before treatment.",
+                    "expected_terms": [
+                        "approval",
+                        "required",
+                        "specified",
+                        "treatment",
+                        "packages",
+                        "before",
+                        "treatment"
+                    ],
+                    "matched_terms": [],
+                    "keyword_score": 0.0,
+                    "retrieved_chunks": 3,
+                    "citations_available": true
+                },
+                {
+                    "id": 5,
+                    "question": "What documents are needed for pre-authorisation?",
+                    "expected": "Hospitals must submit mandatory clinical documents and investigation reports for the selected package.",
+                    "expected_terms": [
+                        "hospitals",
+                        "must",
+                        "submit",
+                        "mandatory",
+                        "clinical",
+                        "documents",
+                        "investigation",
+                        "reports",
+                        "selected",
+                        "package"
+                    ],
+                    "matched_terms": [
+                        "submit",
+                        "mandatory",
+                        "documents",
+                        "selected"
+                    ],
+                    "keyword_score": 0.4,
+                    "retrieved_chunks": 3,
+                    "citations_available": true
+                },
+                {
+                    "id": 6,
+                    "question": "Can you verify whether I am personally eligible for PM-JAY?",
+                    "expected": "I don't know. Personal eligibility cannot be verified from the available documents.",
+                    "expected_terms": [
+                        "don",
+                        "t",
+                        "personal",
+                        "eligibility",
+                        "cannot",
+                        "verified",
+                        "available",
+                        "documents"
+                    ],
+                    "matched_terms": [
+                        "t",
+                        "eligibility"
+                    ],
+                    "keyword_score": 0.25,
+                    "retrieved_chunks": 3,
+                    "citations_available": true
+                },
+                {
+                    "id": 7,
+                    "question": "What happens in emergency pre-authorisation cases?",
+                    "expected": "Hospitals can obtain a pre-authorisation code through the insurer, trust or designated call centre and submit the required information.",
+                    "expected_terms": [
+                        "hospitals",
+                        "obtain",
+                        "pre",
+                        "authorisation",
+                        "code",
+                        "through",
+                        "insurer",
+                        "trust",
+                        "designated",
+                        "call",
+                        "centre",
+                        "submit",
+                        "required",
+                        "information"
+                    ],
+                    "matched_terms": [
+                        "pre",
+                        "code",
+                        "through",
+                        "insurer",
+                        "trust",
+                        "call",
+                        "centre",
+                        "required"
+                    ],
+                    "keyword_score": 0.5714,
+                    "retrieved_chunks": 3,
+                    "citations_available": true
+                },
+                {
+                    "id": 8,
+                    "question": "What is the purpose of the unspecified package?",
+                    "expected": "It supports eligible surgical procedures that are not listed in the standard package list, subject to applicable approval rules.",
+                    "expected_terms": [
+                        "supports",
+                        "eligible",
+                        "surgical",
+                        "procedures",
+                        "listed",
+                        "standard",
+                        "package",
+                        "list",
+                        "subject",
+                        "applicable",
+                        "approval",
+                        "rules"
+                    ],
+                    "matched_terms": [
+                        "surgical",
+                        "procedures",
+                        "package"
+                    ],
+                    "keyword_score": 0.25,
+                    "retrieved_chunks": 3,
+                    "citations_available": true
+                },
+                {
+                    "id": 9,
+                    "question": "When can an unspecified package above one lakh rupees be used?",
+                    "expected": "Only in exceptional circumstances or for life-saving conditions, subject to approval.",
+                    "expected_terms": [
+                        "only",
+                        "exceptional",
+                        "circumstances",
+                        "life",
+                        "saving",
+                        "conditions",
+                        "subject",
+                        "approval"
+                    ],
+                    "matched_terms": [
+                        "only",
+                        "exceptional",
+                        "circumstances",
+                        "life",
+                        "saving",
+                        "conditions",
+                        "approval"
+                    ],
+                    "keyword_score": 0.875,
+                    "retrieved_chunks": 3,
+                    "citations_available": true
+                },
+                {
+                    "id": 10,
+                    "question": "Can a beneficiary receive treatment at a non-empanelled hospital?",
+                    "expected": "The answer must follow the applicable referral and exceptional-case rules in the source documents.",
+                    "expected_terms": [
+                        "answer",
+                        "must",
+                        "follow",
+                        "applicable",
+                        "referral",
+                        "exceptional",
+                        "case",
+                        "rules",
+                        "source",
+                        "documents"
+                    ],
+                    "matched_terms": [
+                        "follow",
+                        "applicable",
+                        "referral",
+                        "exceptional",
+                        "case"
+                    ],
+                    "keyword_score": 0.5,
+                    "retrieved_chunks": 3,
+                    "citations_available": true
+                },
+                {
+                    "id": 11,
+                    "question": "What is the role of an empanelled hospital?",
+                    "expected": "It provides covered services to eligible beneficiaries under PM-JAY and follows scheme procedures.",
+                    "expected_terms": [
+                        "provides",
+                        "covered",
+                        "services",
+                        "eligible",
+                        "beneficiaries",
+                        "pm",
+                        "jay",
+                        "follows",
+                        "scheme",
+                        "procedures"
+                    ],
+                    "matched_terms": [
+                        "pm",
+                        "jay"
+                    ],
+                    "keyword_score": 0.2,
+                    "retrieved_chunks": 3,
+                    "citations_available": true
+                },
+                {
+                    "id": 12,
+                    "question": "Are outpatient consultations covered under PM-JAY?",
+                    "expected": "The answer must be supported by the available scheme documents; do not assume coverage.",
+                    "expected_terms": [
+                        "answer",
+                        "must",
+                        "supported",
+                        "available",
+                        "scheme",
+                        "documents",
+                        "assume",
+                        "coverage"
+                    ],
+                    "matched_terms": [
+                        "available",
+                        "scheme",
+                        "coverage"
+                    ],
+                    "keyword_score": 0.375,
+                    "retrieved_chunks": 3,
+                    "citations_available": true
+                },
+                {
+                    "id": 13,
+                    "question": "What is the annual coverage limit for an eligible PM-JAY family?",
+                    "expected": "Up to Rs. 5 lakh per family per year.",
+                    "expected_terms": [
+                        "5",
+                        "lakh",
+                        "family",
+                        "year"
+                    ],
+                    "matched_terms": [
+                        "5",
+                        "family"
+                    ],
+                    "keyword_score": 0.5,
+                    "retrieved_chunks": 3,
+                    "citations_available": true
+                },
+                {
+                    "id": 14,
+                    "question": "Can you tell me today's weather in Kopargaon?",
+                    "expected": "I don't know. The available healthcare documents do not contain weather information.",
+                    "expected_terms": [
+                        "don",
+                        "t",
+                        "available",
+                        "healthcare",
+                        "documents",
+                        "contain",
+                        "weather",
+                        "information"
+                    ],
+                    "matched_terms": [
+                        "t"
+                    ],
+                    "keyword_score": 0.125,
+                    "retrieved_chunks": 3,
+                    "citations_available": true
+                },
+                {
+                    "id": 15,
+                    "question": "What is the process for submitting a pre-authorisation request?",
+                    "expected": "The hospital submits the request with the required clinical documents and investigation reports through the applicable system.",
+                    "expected_terms": [
+                        "hospital",
+                        "submits",
+                        "request",
+                        "required",
+                        "clinical",
+                        "documents",
+                        "investigation",
+                        "reports",
+                        "through",
+                        "applicable",
+                        "system"
+                    ],
+                    "matched_terms": [
+                        "request",
+                        "required",
+                        "documents"
+                    ],
+                    "keyword_score": 0.2727,
+                    "retrieved_chunks": 3,
+                    "citations_available": true
+                }
+            ]
+        },
+        {
+            "configuration": {
+                "name": "Configuration B",
+                "chunk_size": 1000,
+                "top_k": 5
+            },
+            "total_questions": 15,
+            "scored_questions": 15,
+            "average_keyword_score": 0.5444,
+            "citation_rate": 1.0,
+            "results": [
+                {
+                    "id": 1,
+                    "question": "What is the maximum health coverage under PM-JAY?",
+                    "expected": "Up to Rs. 5 lakh per eligible family per year.",
+                    "expected_terms": [
+                        "5",
+                        "lakh",
+                        "eligible",
+                        "family",
+                        "year"
+                    ],
+                    "matched_terms": [
+                        "5",
+                        "eligible"
+                    ],
+                    "keyword_score": 0.4,
+                    "retrieved_chunks": 5,
+                    "citations_available": true
+                },
+                {
+                    "id": 2,
+                    "question": "Which rural families are eligible for PM-JAY?",
+                    "expected": "Eligible rural families are identified using SECC deprivation categories and applicable inclusion criteria.",
+                    "expected_terms": [
+                        "eligible",
+                        "rural",
+                        "families",
+                        "identified",
+                        "using",
+                        "secc",
+                        "deprivation",
+                        "categories",
+                        "applicable",
+                        "inclusion",
+                        "criteria"
+                    ],
+                    "matched_terms": [
+                        "eligible",
+                        "rural",
+                        "families",
+                        "identified",
+                        "secc",
+                        "deprivation",
+                        "categories",
+                        "inclusion",
+                        "criteria"
+                    ],
+                    "keyword_score": 0.8182,
+                    "retrieved_chunks": 5,
+                    "citations_available": true
+                },
+                {
+                    "id": 3,
+                    "question": "How are PM-JAY beneficiaries identified?",
+                    "expected": "Beneficiaries are identified using SECC data and eligible RSBY beneficiary records.",
+                    "expected_terms": [
+                        "beneficiaries",
+                        "identified",
+                        "using",
+                        "secc",
+                        "data",
+                        "eligible",
+                        "rsby",
+                        "beneficiary",
+                        "records"
+                    ],
+                    "matched_terms": [
+                        "beneficiaries",
+                        "identified",
+                        "secc",
+                        "data",
+                        "rsby",
+                        "beneficiary"
+                    ],
+                    "keyword_score": 0.6667,
+                    "retrieved_chunks": 5,
+                    "citations_available": true
+                },
+                {
+                    "id": 4,
+                    "question": "What is pre-authorisation in PM-JAY?",
+                    "expected": "It is approval required for specified treatment packages before treatment.",
+                    "expected_terms": [
+                        "approval",
+                        "required",
+                        "specified",
+                        "treatment",
+                        "packages",
+                        "before",
+                        "treatment"
+                    ],
+                    "matched_terms": [
+                        "approval",
+                        "required",
+                        "treatment",
+                        "treatment"
+                    ],
+                    "keyword_score": 0.5714,
+                    "retrieved_chunks": 5,
+                    "citations_available": true
+                },
+                {
+                    "id": 5,
+                    "question": "What documents are needed for pre-authorisation?",
+                    "expected": "Hospitals must submit mandatory clinical documents and investigation reports for the selected package.",
+                    "expected_terms": [
+                        "hospitals",
+                        "must",
+                        "submit",
+                        "mandatory",
+                        "clinical",
+                        "documents",
+                        "investigation",
+                        "reports",
+                        "selected",
+                        "package"
+                    ],
+                    "matched_terms": [
+                        "submit",
+                        "mandatory",
+                        "documents",
+                        "selected",
+                        "package"
+                    ],
+                    "keyword_score": 0.5,
+                    "retrieved_chunks": 5,
+                    "citations_available": true
+                },
+                {
+                    "id": 6,
+                    "question": "Can you verify whether I am personally eligible for PM-JAY?",
+                    "expected": "I don't know. Personal eligibility cannot be verified from the available documents.",
+                    "expected_terms": [
+                        "don",
+                        "t",
+                        "personal",
+                        "eligibility",
+                        "cannot",
+                        "verified",
+                        "available",
+                        "documents"
+                    ],
+                    "matched_terms": [
+                        "t",
+                        "eligibility",
+                        "verified",
+                        "available"
+                    ],
+                    "keyword_score": 0.5,
+                    "retrieved_chunks": 5,
+                    "citations_available": true
+                },
+                {
+                    "id": 7,
+                    "question": "What happens in emergency pre-authorisation cases?",
+                    "expected": "Hospitals can obtain a pre-authorisation code through the insurer, trust or designated call centre and submit the required information.",
+                    "expected_terms": [
+                        "hospitals",
+                        "obtain",
+                        "pre",
+                        "authorisation",
+                        "code",
+                        "through",
+                        "insurer",
+                        "trust",
+                        "designated",
+                        "call",
+                        "centre",
+                        "submit",
+                        "required",
+                        "information"
+                    ],
+                    "matched_terms": [
+                        "hospitals",
+                        "pre",
+                        "code",
+                        "through",
+                        "insurer",
+                        "trust",
+                        "call",
+                        "centre",
+                        "submit",
+                        "required"
+                    ],
+                    "keyword_score": 0.7143,
+                    "retrieved_chunks": 5,
+                    "citations_available": true
+                },
+                {
+                    "id": 8,
+                    "question": "What is the purpose of the unspecified package?",
+                    "expected": "It supports eligible surgical procedures that are not listed in the standard package list, subject to applicable approval rules.",
+                    "expected_terms": [
+                        "supports",
+                        "eligible",
+                        "surgical",
+                        "procedures",
+                        "listed",
+                        "standard",
+                        "package",
+                        "list",
+                        "subject",
+                        "applicable",
+                        "approval",
+                        "rules"
+                    ],
+                    "matched_terms": [
+                        "surgical",
+                        "procedures",
+                        "listed",
+                        "package",
+                        "list",
+                        "approval"
+                    ],
+                    "keyword_score": 0.5,
+                    "retrieved_chunks": 5,
+                    "citations_available": true
+                },
+                {
+                    "id": 9,
+                    "question": "When can an unspecified package above one lakh rupees be used?",
+                    "expected": "Only in exceptional circumstances or for life-saving conditions, subject to approval.",
+                    "expected_terms": [
+                        "only",
+                        "exceptional",
+                        "circumstances",
+                        "life",
+                        "saving",
+                        "conditions",
+                        "subject",
+                        "approval"
+                    ],
+                    "matched_terms": [
+                        "only",
+                        "exceptional",
+                        "circumstances",
+                        "life",
+                        "saving",
+                        "conditions",
+                        "approval"
+                    ],
+                    "keyword_score": 0.875,
+                    "retrieved_chunks": 5,
+                    "citations_available": true
+                },
+                {
+                    "id": 10,
+                    "question": "Can a beneficiary receive treatment at a non-empanelled hospital?",
+                    "expected": "The answer must follow the applicable referral and exceptional-case rules in the source documents.",
+                    "expected_terms": [
+                        "answer",
+                        "must",
+                        "follow",
+                        "applicable",
+                        "referral",
+                        "exceptional",
+                        "case",
+                        "rules",
+                        "source",
+                        "documents"
+                    ],
+                    "matched_terms": [
+                        "follow",
+                        "applicable",
+                        "referral",
+                        "exceptional",
+                        "case"
+                    ],
+                    "keyword_score": 0.5,
+                    "retrieved_chunks": 5,
+                    "citations_available": true
+                },
+                {
+                    "id": 11,
+                    "question": "What is the role of an empanelled hospital?",
+                    "expected": "It provides covered services to eligible beneficiaries under PM-JAY and follows scheme procedures.",
+                    "expected_terms": [
+                        "provides",
+                        "covered",
+                        "services",
+                        "eligible",
+                        "beneficiaries",
+                        "pm",
+                        "jay",
+                        "follows",
+                        "scheme",
+                        "procedures"
+                    ],
+                    "matched_terms": [
+                        "eligible",
+                        "beneficiaries",
+                        "pm",
+                        "jay",
+                        "follows",
+                        "scheme",
+                        "procedures"
+                    ],
+                    "keyword_score": 0.7,
+                    "retrieved_chunks": 5,
+                    "citations_available": true
+                },
+                {
+                    "id": 12,
+                    "question": "Are outpatient consultations covered under PM-JAY?",
+                    "expected": "The answer must be supported by the available scheme documents; do not assume coverage.",
+                    "expected_terms": [
+                        "answer",
+                        "must",
+                        "supported",
+                        "available",
+                        "scheme",
+                        "documents",
+                        "assume",
+                        "coverage"
+                    ],
+                    "matched_terms": [
+                        "available",
+                        "scheme"
+                    ],
+                    "keyword_score": 0.25,
+                    "retrieved_chunks": 5,
+                    "citations_available": true
+                },
+                {
+                    "id": 13,
+                    "question": "What is the annual coverage limit for an eligible PM-JAY family?",
+                    "expected": "Up to Rs. 5 lakh per family per year.",
+                    "expected_terms": [
+                        "5",
+                        "lakh",
+                        "family",
+                        "year"
+                    ],
+                    "matched_terms": [
+                        "5",
+                        "family"
+                    ],
+                    "keyword_score": 0.5,
+                    "retrieved_chunks": 5,
+                    "citations_available": true
+                },
+                {
+                    "id": 14,
+                    "question": "Can you tell me today's weather in Kopargaon?",
+                    "expected": "I don't know. The available healthcare documents do not contain weather information.",
+                    "expected_terms": [
+                        "don",
+                        "t",
+                        "available",
+                        "healthcare",
+                        "documents",
+                        "contain",
+                        "weather",
+                        "information"
+                    ],
+                    "matched_terms": [
+                        "t"
+                    ],
+                    "keyword_score": 0.125,
+                    "retrieved_chunks": 5,
+                    "citations_available": true
+                },
+                {
+                    "id": 15,
+                    "question": "What is the process for submitting a pre-authorisation request?",
+                    "expected": "The hospital submits the request with the required clinical documents and investigation reports through the applicable system.",
+                    "expected_terms": [
+                        "hospital",
+                        "submits",
+                        "request",
+                        "required",
+                        "clinical",
+                        "documents",
+                        "investigation",
+                        "reports",
+                        "through",
+                        "applicable",
+                        "system"
+                    ],
+                    "matched_terms": [
+                        "hospital",
+                        "request",
+                        "required",
+                        "documents",
+                        "through",
+                        "system"
+                    ],
+                    "keyword_score": 0.5455,
+                    "retrieved_chunks": 5,
+                    "citations_available": true
+                }
+            ]
+        }
+    ],
+    "winner": "Configuration B"
+}
