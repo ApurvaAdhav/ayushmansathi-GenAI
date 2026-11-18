@@ -4,12 +4,19 @@ from pydantic import BaseModel, Field
 from pathlib import Path
 import json
 
+from langgraph.types import Command
+
+from app.graph import agent_graph
 from app.records import load_records, get_by_id, search
 from app.smart_search import smart_search
 from app.llm import generate_response
 from app.vectorstore import semantic_search
 from app.rag import ask_question as rag_ask_question
 
+
+# -----------------------------
+# Project Paths
+# -----------------------------
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROMPT_DIR = BASE_DIR / "prompts"
@@ -39,6 +46,12 @@ class AskRequest(BaseModel):
     top_k: int = Field(default=5, ge=1, le=20)
 
 
+class AgentRequest(BaseModel):
+    message: str = ""
+    thread_id: str = "default"
+    approval: bool | None = None
+
+
 # -----------------------------
 # Initialize FastAPI
 # -----------------------------
@@ -52,6 +65,7 @@ app = FastAPI(title="AyushmanSathi API")
 
 @app.get("/health")
 def health_check():
+
     return {
         "status": "healthy",
         "message": "AyushmanSathi API is running"
@@ -64,6 +78,7 @@ def health_check():
 
 @app.get("/records")
 def get_records(limit: int = 10):
+
     records = load_records()
 
     return {
@@ -78,6 +93,7 @@ def get_records(limit: int = 10):
 
 @app.get("/records/{record_id}")
 def get_record(record_id: int):
+
     records = load_records()
     record = get_by_id(records, record_id)
 
@@ -96,6 +112,7 @@ def get_record(record_id: int):
 
 @app.get("/search")
 def search_records(q: str):
+
     results = smart_search(q)
 
     return {
@@ -125,6 +142,7 @@ def search_semantic(q: str, limit: int = 5):
         )
 
     try:
+
         results = semantic_search(
             query=q,
             n_results=limit
@@ -137,12 +155,14 @@ def search_semantic(q: str, limit: int = 5):
         }
 
     except ValueError as e:
+
         raise HTTPException(
             status_code=400,
             detail=str(e)
         )
 
     except Exception as e:
+
         raise HTTPException(
             status_code=500,
             detail=f"Semantic search failed: {str(e)}"
@@ -155,6 +175,7 @@ def search_semantic(q: str, limit: int = 5):
 
 @app.post("/questions")
 def search_questions(data: Question):
+
     records = load_records()
     results = search(records, data.question)
 
@@ -179,6 +200,7 @@ def chat(data: ChatRequest):
         )
 
     try:
+
         system_prompt = (PROMPT_DIR / "system.txt").read_text(
             encoding="utf-8"
         )
@@ -233,12 +255,14 @@ Return only valid JSON:
         )
 
     except (json.JSONDecodeError, KeyError, TypeError, ValueError):
+
         raise HTTPException(
             status_code=502,
             detail="Gemini returned an invalid response format"
         )
 
     except RuntimeError as e:
+
         raise HTTPException(
             status_code=502,
             detail=str(e)
@@ -259,6 +283,7 @@ def ask(data: AskRequest):
         )
 
     try:
+
         result = rag_ask_question(
             question=data.question,
             top_k=data.top_k
@@ -267,19 +292,94 @@ def ask(data: AskRequest):
         return result
 
     except ValueError as e:
+
         raise HTTPException(
             status_code=400,
             detail=str(e)
         )
 
     except RuntimeError as e:
+
         raise HTTPException(
             status_code=502,
             detail=str(e)
         )
 
     except Exception as e:
+
         raise HTTPException(
             status_code=500,
             detail=f"RAG question answering failed: {str(e)}"
+        )
+
+
+# -----------------------------
+# 9. LangGraph Agent
+# -----------------------------
+
+@app.post("/agent")
+def run_langgraph_agent(data: AgentRequest):
+
+    config = {
+        "configurable": {
+            "thread_id": data.thread_id
+        }
+    }
+
+    try:
+
+        # Resume an interrupted agent after approval/rejection
+        if data.approval is not None:
+
+            result = agent_graph.invoke(
+                Command(
+                    resume={"approved": data.approval}
+                ),
+                config=config
+            )
+
+        # Start a new agent request
+        else:
+
+            if not data.message.strip():
+                raise HTTPException(
+                    status_code=400,
+                    detail="Message cannot be empty"
+                )
+
+            result = agent_graph.invoke(
+                {"message": data.message},
+                config=config
+            )
+
+        # Check whether human approval is required
+        if "__interrupt__" in result:
+
+            pending = result["__interrupt__"][0]
+
+            return {
+                "status": "approval_required",
+                "thread_id": data.thread_id,
+                "approval_request": pending.value
+            }
+
+        # Return completed agent response
+        return {
+            "status": "completed",
+            "thread_id": data.thread_id,
+            "tool_used": result.get("tool_used"),
+            "result": result.get("result"),
+            "citations": result.get("citations", []),
+            "approval_status": result.get("approval_status"),
+            "answer": result.get("answer")
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Agent execution failed: {str(e)}"
         )
