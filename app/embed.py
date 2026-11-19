@@ -1,4 +1,5 @@
 from sentence_transformers import SentenceTransformer
+
 from app.chunking import create_chunks
 
 # Load the pre-trained embedding model

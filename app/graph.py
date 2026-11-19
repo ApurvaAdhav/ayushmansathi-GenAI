@@ -1,14 +1,13 @@
 
 import re
-from typing import TypedDict, Optional, Any
+from typing import TypedDict
 
-from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 
 from app.tools import cover_balance_tracker
 from app.vectorstore import semantic_search
-
 
 # -----------------------------
 # Agent State
@@ -23,6 +22,7 @@ class AgentState(TypedDict, total=False):
     requires_approval: bool
     approval_status: str
     answer: str
+    conversation_history: list
 
 
 # -----------------------------
@@ -87,8 +87,32 @@ def cover_balance_node(state: AgentState):
 
 def rag_search_node(state: AgentState):
 
+    message = state["message"]
+    history = state.get("conversation_history", [])
+
+    # Check whether the user previously shared their name
+    if "name" in message.lower():
+
+        for item in reversed(history):
+
+            if item["role"] == "user":
+
+                match = re.search(
+                    r"\bmy name is\s+([A-Za-z][A-Za-z ]*)",
+                    item["content"],
+                    re.IGNORECASE
+                )
+
+                if match:
+                    name = match.group(1).strip()
+
+                    return {
+                        "tool_used": "conversation_memory",
+                        "answer": f"Your name is {name}."
+                    }
+
     results = semantic_search(
-        query=state["message"],
+        query=message,
         n_results=5
     )
 
@@ -167,11 +191,35 @@ def check_approval(state: AgentState):
     if state.get("requires_approval"):
         return "approval"
 
-    return "end"
+    return "save_history"
 
 
 # -----------------------------
-# 6. Build LangGraph
+# 6. Save Conversation History
+# -----------------------------
+
+def save_history(state: AgentState):
+
+    history = state.get("conversation_history", [])
+
+    history = history + [
+        {
+            "role": "user",
+            "content": state["message"]
+        },
+        {
+            "role": "assistant",
+            "content": state.get("answer", "")
+        }
+    ]
+
+    return {
+        "conversation_history": history
+    }
+
+
+# -----------------------------
+# 7. Build LangGraph
 # -----------------------------
 
 builder = StateGraph(AgentState)
@@ -179,6 +227,7 @@ builder = StateGraph(AgentState)
 builder.add_node("cover_balance", cover_balance_node)
 builder.add_node("rag_search", rag_search_node)
 builder.add_node("approval", approval_node)
+builder.add_node("save_history", save_history)
 
 builder.add_conditional_edges(
     START,
@@ -194,17 +243,20 @@ builder.add_conditional_edges(
     check_approval,
     {
         "approval": "approval",
-        "end": END
+        "save_history": "save_history"
     }
 )
 
-builder.add_edge("approval", END)
-builder.add_edge("rag_search", END)
+builder.add_edge("approval", "save_history")
+builder.add_edge("rag_search", "save_history")
+builder.add_edge("save_history", END)
 
 
-# Memory: retain graph state by thread ID
+# Memory: retain conversation state by thread ID
+
 memory = InMemorySaver()
 
 agent_graph = builder.compile(
     checkpointer=memory
 )
+

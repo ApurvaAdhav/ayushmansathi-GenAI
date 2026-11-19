@@ -1,15 +1,16 @@
-
-import streamlit as st
-import requests
+import os
 import json
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+import requests
+import streamlit as st
 
 # ==================================================
 # 1. CONFIGURATION
 # ==================================================
 
-API_URL = "http://127.0.0.1:8001"
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8001")
 
 FEEDBACK_FILE = Path(__file__).resolve().parent / "feedback.json"
 
@@ -242,8 +243,10 @@ def get_coverage_verdict(result):
     if not cited_rules:
         return (
             "Needs pre-approval",
-            "The actual cited policy text is unavailable. "
-            "Please confirm the treatment with an authorised hospital."
+            (
+                "The actual cited policy text is unavailable. "
+                "Please confirm the treatment with an authorised hospital."
+            )
         )
 
     rule_text = " ".join(
@@ -270,23 +273,29 @@ def get_coverage_verdict(result):
 
         return (
             "Not covered",
-            "The cited policy contains exclusion-related wording. "
-            "Confirm that the exclusion applies to this exact treatment."
+            (
+                "The cited policy contains exclusion-related wording. "
+                "Confirm that the exclusion applies to this exact treatment."
+            )
         )
 
     if any(term in rule_text for term in approval_terms):
 
         return (
             "Needs pre-approval",
-            "The cited policy indicates that prior authorisation "
-            "is required."
+            (
+                "The cited policy indicates that prior authorisation "
+                "is required."
+            )
         )
 
     # Do not infer coverage from general policy information.
     return (
         "Needs pre-approval",
-        "The cited rules do not establish a definite coverage "
-        "decision for this specific treatment."
+        (
+            "The cited rules do not establish a definite coverage "
+            "decision for this specific treatment."
+        )
     )
 
 
@@ -385,7 +394,7 @@ def display_message(message, index):
             # Feedback controls.
             elif index not in st.session_state.feedback_given:
 
-                col1, col2, col3 = st.columns([1, 1, 5])
+                col1, col2, _col3 = st.columns([1, 1, 5])
 
                 if col1.button("👍", key=f"up_{index}"):
 
@@ -692,166 +701,164 @@ elif st.session_state.page == "AI Assistant":
         with st.chat_message("user"):
             st.write(question)
 
-        with st.chat_message("assistant"):
+        with st.chat_message("assistant"), st.spinner(
+            "AyushmanSathi is preparing your answer..."
+        ):
 
-            with st.spinner(
-                "AyushmanSathi is preparing your answer..."
-            ):
+            try:
 
-                try:
+                if st.session_state.mode == "RAG Question Answering":
 
-                    if st.session_state.mode == "RAG Question Answering":
+                    response = requests.post(
+                        f"{API_URL}/ask",
+                        json={
+                            "question": question,
+                            "top_k": 5
+                        },
+                        timeout=120
+                    )
 
-                        response = requests.post(
-                            f"{API_URL}/ask",
-                            json={
-                                "question": question,
-                                "top_k": 5
-                            },
-                            timeout=120
+                else:
+
+                    response = requests.post(
+                        f"{API_URL}/agent",
+                        json={
+                            "message": question,
+                            "thread_id": st.session_state.thread_id
+                        },
+                        timeout=120
+                    )
+
+                response.raise_for_status()
+
+                result = response.json()
+
+                # Extract answer.
+                if st.session_state.mode == "RAG Question Answering":
+
+                    answer = result.get(
+                        "answer",
+                        "No answer was returned."
+                    )
+
+                else:
+
+                    if result.get("status") == "approval_required":
+
+                        answer = (
+                            "Your request requires human approval "
+                            "before the AI Agent can continue."
                         )
 
                     else:
 
-                        response = requests.post(
-                            f"{API_URL}/agent",
-                            json={
-                                "message": question,
-                                "thread_id": st.session_state.thread_id
-                            },
-                            timeout=120
-                        )
+                        answer = result.get("answer")
 
-                    response.raise_for_status()
+                        if not answer:
 
-                    result = response.json()
-
-                    # Extract answer.
-                    if st.session_state.mode == "RAG Question Answering":
-
-                        answer = result.get(
-                            "answer",
-                            "No answer was returned."
-                        )
-
-                    else:
-
-                        if result.get("status") == "approval_required":
-
-                            answer = (
-                                "Your request requires human approval "
-                                "before the AI Agent can continue."
+                            answer = json.dumps(
+                                result.get("result", result),
+                                indent=2,
+                                ensure_ascii=False
                             )
 
-                        else:
+                citations = result.get("citations", [])
 
-                            answer = result.get("answer")
+                verdict, reason = get_coverage_verdict(result)
 
-                            if not answer:
+                approval_required = (
+                    st.session_state.mode == "AI Agent"
+                    and result.get("status") == "approval_required"
+                )
 
-                                answer = json.dumps(
-                                    result.get("result", result),
-                                    indent=2,
-                                    ensure_ascii=False
-                                )
+                approval_request = result.get(
+                    "approval_request", ""
+                )
 
-                    citations = result.get("citations", [])
+                # Display answer.
+                st.write(answer)
 
-                    verdict, reason = get_coverage_verdict(result)
+                display_verdict(verdict, reason)
 
-                    approval_required = (
-                        st.session_state.mode == "AI Agent"
-                        and result.get("status") == "approval_required"
+                display_citations(citations)
+
+                if approval_required:
+
+                    st.info(
+                        "The AI Agent needs your approval "
+                        "before continuing."
                     )
 
-                    approval_request = result.get(
-                        "approval_request", ""
-                    )
+                    st.write(approval_request)
 
-                    # Display answer.
-                    st.write(answer)
+                # Store answer in session history.
+                message_index = len(st.session_state.messages)
 
-                    display_verdict(verdict, reason)
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": answer,
+                    "question": question,
+                    "citations": citations,
+                    "verdict": verdict,
+                    "verdict_reason": reason,
+                    "approval_required": approval_required,
+                    "approval_request": approval_request
+                })
 
-                    display_citations(citations)
+                # Feedback for the new answer.
+                if not approval_required:
 
-                    if approval_required:
+                    col1, col2, _col3 = st.columns([1, 1, 5])
 
-                        st.info(
-                            "The AI Agent needs your approval "
-                            "before continuing."
+                    if col1.button(
+                        "👍",
+                        key=f"new_up_{message_index}"
+                    ):
+
+                        save_feedback(
+                            question,
+                            answer,
+                            "positive"
                         )
 
-                        st.write(approval_request)
+                        st.session_state.feedback_given.append(
+                            message_index
+                        )
 
-                    # Store answer in session history.
-                    message_index = len(st.session_state.messages)
+                        st.toast("Thank you for your feedback!")
+                        st.rerun()
 
-                    st.session_state.messages.append({
-                        "role": "assistant",
-                        "content": answer,
-                        "question": question,
-                        "citations": citations,
-                        "verdict": verdict,
-                        "verdict_reason": reason,
-                        "approval_required": approval_required,
-                        "approval_request": approval_request
-                    })
+                    if col2.button(
+                        "👎",
+                        key=f"new_down_{message_index}"
+                    ):
 
-                    # Feedback for the new answer.
-                    if not approval_required:
+                        save_feedback(
+                            question,
+                            answer,
+                            "negative"
+                        )
 
-                        col1, col2, col3 = st.columns([1, 1, 5])
+                        st.session_state.feedback_given.append(
+                            message_index
+                        )
 
-                        if col1.button(
-                            "👍",
-                            key=f"new_up_{message_index}"
-                        ):
+                        st.toast("Feedback saved!")
+                        st.rerun()
 
-                            save_feedback(
-                                question,
-                                answer,
-                                "positive"
-                            )
+            except requests.exceptions.RequestException as error:
 
-                            st.session_state.feedback_given.append(
-                                message_index
-                            )
+                st.error(
+                    "Could not connect to AyushmanSathi API. "
+                    "Please check whether FastAPI is running."
+                )
 
-                            st.toast("Thank you for your feedback!")
-                            st.rerun()
+                st.caption(str(error))
 
-                        if col2.button(
-                            "👎",
-                            key=f"new_down_{message_index}"
-                        ):
+            except (ValueError, KeyError, TypeError) as error:
 
-                            save_feedback(
-                                question,
-                                answer,
-                                "negative"
-                            )
-
-                            st.session_state.feedback_given.append(
-                                message_index
-                            )
-
-                            st.toast("Feedback saved!")
-                            st.rerun()
-
-                except requests.exceptions.RequestException as error:
-
-                    st.error(
-                        "Could not connect to AyushmanSathi API. "
-                        "Please check whether FastAPI is running."
-                    )
-
-                    st.caption(str(error))
-
-                except Exception as error:
-
-                    st.error("Something went wrong.")
-                    st.caption(str(error))
+                st.error("The API returned an unexpected response.")
+                st.caption(str(error))
 
 
 # ==================================================

@@ -1,9 +1,8 @@
 
 from pathlib import Path
 
-from data.user_questions import user_questions
 from app.vectorstore import semantic_search
-
+from data.user_questions import user_questions
 
 # Output file
 OUTPUT_FILE = Path(__file__).resolve().parent / "search_results.md"

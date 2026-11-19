@@ -1,8 +1,9 @@
 
 import json
 from pathlib import Path
-from data.user_questions import user_questions
+
 from app.llm import generate_response
+from data.user_questions import user_questions
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROMPT_DIR = BASE_DIR / "prompts"
@@ -57,8 +58,8 @@ for number, question in enumerate(user_questions, start=1):
 
             print(f"Version {version} completed and saved.")
 
-        except Exception as e:
-            print(f"Version {version} failed: {e}")
+        except (RuntimeError, OSError) as error:
+            print(f"Version {version} failed: {error}")
             print("Progress saved. Stopping comparison.")
             break
 

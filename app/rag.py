@@ -5,7 +5,6 @@ import re
 from app.llm import generate_response
 from app.vectorstore import semantic_search
 
-
 PERSONAL_ELIGIBILITY_TERMS = (
     "am i eligible",
     "am i personally eligible",

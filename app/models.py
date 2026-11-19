@@ -1,6 +1,7 @@
 
 from dataclasses import dataclass
 
+
 @dataclass
 class Record:
     rule_topic: str

@@ -3,8 +3,7 @@ import json
 import re
 from pathlib import Path
 
-from app.vectorstore import store_chunks, semantic_search
-
+from app.vectorstore import semantic_search, store_chunks
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -75,7 +74,6 @@ def get_expected_terms(item):
 
 
 def evaluate_configuration(questions, config):
-
     print(f"\nRunning {config['name']}")
     print("-" * 50)
 
@@ -134,7 +132,7 @@ def evaluate_configuration(questions, config):
                 f"Chunks = {len(retrieved)}"
             )
 
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             print(f"Q{item['id']} failed: {error}")
 
             results.append({
@@ -176,7 +174,6 @@ def evaluate_configuration(questions, config):
 
 
 def main():
-
     questions = load_questions()
     all_results = []
 
@@ -230,7 +227,6 @@ def main():
     print("\n========== EVALUATION SUMMARY ==========")
 
     for result in all_results:
-
         config = result["configuration"]
 
         print(f"\n{config['name']}")

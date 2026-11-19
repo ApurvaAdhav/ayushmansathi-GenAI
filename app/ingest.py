@@ -1,7 +1,9 @@
+
 import json
 from pathlib import Path
-from pypdf import PdfReader
 
+from pypdf import PdfReader
+from pypdf.errors import PdfReadError
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 RAW_DIR = BASE_DIR / "data" / "raw"
@@ -43,10 +45,10 @@ def extract_records():
 
                     records.append(record)
 
-                except Exception as error:
+                except (PdfReadError, ValueError, KeyError) as error:
                     print("Page error:", error)
 
-        except Exception as error:
+        except (PdfReadError, OSError, ValueError) as error:
             print("File error:", pdf_file.name, error)
 
     return records
@@ -60,7 +62,7 @@ def save_records(records):
         print("Records saved successfully!")
         print("Total records:", len(records))
 
-    except Exception as error:
+    except (OSError, TypeError, ValueError) as error:
         print("Saving error:", error)
 
 

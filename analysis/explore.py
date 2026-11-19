@@ -1,6 +1,7 @@
 import json
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
 
 # Get project root directory
 BASE_DIR = Path(__file__).resolve().parent.parent

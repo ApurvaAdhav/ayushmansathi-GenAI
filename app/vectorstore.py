@@ -1,10 +1,10 @@
 
-import chromadb
 from pathlib import Path
+
+import chromadb
 
 from app.chunking import create_chunks
 from app.embed import generate_embeddings
-
 
 # --------------------------------------------------
 # 1. Initialize ChromaDB
