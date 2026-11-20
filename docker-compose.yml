@@ -5,7 +5,7 @@ services:
     container_name: ayushmansathi-api
     command: uvicorn app.main:app --host 0.0.0.0 --port 8001
     ports:
-      - "8001:8001"
+      - "8002:8001"
     env_file:
       - .env
     volumes:
@@ -24,6 +24,4 @@ services:
       API_URL: http://api:8001
     depends_on:
       - api
-    volumes:
-      - ./ui/feedback.json:/app/ui/feedback.json
     restart: unless-stopped

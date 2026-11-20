@@ -1,3 +1,5 @@
+[![AyushmanSathi CI](https://github.com/ApurvaAdhav/ayushmansathi-GenAI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ApurvaAdhav/ayushmansathi-GenAI/actions/workflows/ci.yml)
+
 # 🏥 AyushmanSathi – AI-Powered Healthcare Assistant
 
 ## Project Overview
