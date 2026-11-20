@@ -3,7 +3,6 @@ import json
 import re
 
 from app.llm import generate_response
-from app.vectorstore import semantic_search
 
 PERSONAL_ELIGIBILITY_TERMS = (
     "am i eligible",
@@ -112,7 +111,9 @@ def ask_question(question: str, top_k: int = 5) -> dict:
             "retrieved_chunks": 0,
         }
 
-    # Retrieve relevant document chunks.
+    # Load semantic search only when RAG is requested.
+    from app.vectorstore import semantic_search
+
     retrieved = semantic_search(
         query=question,
         n_results=top_k
@@ -145,8 +146,7 @@ def ask_question(question: str, top_k: int = 5) -> dict:
     context = "\n\n".join(context_parts)
     citations = build_citations(retrieved)
 
-    # Direct source-based fallback for the explicitly documented
-    # PM-JAY coverage limit.
+    # Direct source-based fallback for the documented coverage limit.
     if is_coverage_question(question):
         coverage_answer = get_source_based_coverage_answer(retrieved)
 
@@ -200,7 +200,11 @@ If the excerpts do not support an answer, set supported to false.
     try:
         response = generate_response(prompt)
 
-        cleaned = response.replace("```json", "").replace("```", "").strip()
+        cleaned = (
+            response.replace("```json", "")
+            .replace("```", "")
+            .strip()
+        )
 
         # Extract JSON if the model adds text around it.
         match = re.search(r"\{.*\}", cleaned, re.DOTALL)
@@ -255,6 +259,11 @@ If the excerpts do not support an answer, set supported to false.
         }
 
     except (json.JSONDecodeError, ValueError) as e:
-        raise RuntimeError(f"Could not process Gemini response: {e}") from e
+        raise RuntimeError(
+            f"Could not process Gemini response: {e}"
+        ) from e
+
     except Exception as e:
-        raise RuntimeError(f"RAG answering failed: {e}") from e
+        raise RuntimeError(
+            f"RAG answering failed: {e}"
+        ) from e

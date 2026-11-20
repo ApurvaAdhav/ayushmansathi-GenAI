@@ -7,7 +7,6 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 
 from app.tools import cover_balance_tracker
-from app.vectorstore import semantic_search
 
 # -----------------------------
 # Agent State
@@ -110,6 +109,9 @@ def rag_search_node(state: AgentState):
                         "tool_used": "conversation_memory",
                         "answer": f"Your name is {name}."
                     }
+
+    # Load semantic search only when required
+    from app.vectorstore import semantic_search
 
     results = semantic_search(
         query=message,
@@ -259,4 +261,3 @@ memory = InMemorySaver()
 agent_graph = builder.compile(
     checkpointer=memory
 )
-

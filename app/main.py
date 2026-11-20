@@ -3,28 +3,17 @@ import json
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from langgraph.types import Command
 from pydantic import BaseModel, Field
 
-from app.graph import agent_graph
-from app.llm import generate_response
-from app.rag import ask_question as rag_ask_question
 from app.records import get_by_id, load_records, search
 from app.smart_search import smart_search
-from app.vectorstore import semantic_search
 
-# -----------------------------
 # Project Paths
-# -----------------------------
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROMPT_DIR = BASE_DIR / "prompts"
 
 
-# -----------------------------
 # Request and Response Models
-# -----------------------------
-
 class Question(BaseModel):
     question: str
 
@@ -51,17 +40,21 @@ class AgentRequest(BaseModel):
     approval: bool | None = None
 
 
-# -----------------------------
 # Initialize FastAPI
-# -----------------------------
-
 app = FastAPI(title="AyushmanSathi API")
 
 
-# -----------------------------
-# 1. Health Check
-# -----------------------------
+# Lazy-loading wrapper for RAG
+def rag_ask_question(question, top_k=5):
+    from app.rag import ask_question
 
+    return ask_question(
+        question=question,
+        top_k=top_k
+    )
+
+
+# 1. Health Check
 @app.get("/health")
 def health_check():
     return {
@@ -70,10 +63,7 @@ def health_check():
     }
 
 
-# -----------------------------
 # 2. Get All Records
-# -----------------------------
-
 @app.get("/records")
 def get_records(limit: int = 10):
     records = load_records()
@@ -84,10 +74,7 @@ def get_records(limit: int = 10):
     }
 
 
-# -----------------------------
 # 3. Get Record by ID
-# -----------------------------
-
 @app.get("/records/{record_id}")
 def get_record(record_id: int):
     records = load_records()
@@ -102,10 +89,7 @@ def get_record(record_id: int):
     return record
 
 
-# -----------------------------
 # 4. Keyword / TF-IDF Search
-# -----------------------------
-
 @app.get("/search")
 def search_records(q: str):
     results = smart_search(q)
@@ -117,10 +101,7 @@ def search_records(q: str):
     }
 
 
-# -----------------------------
 # 5. Semantic Search using ChromaDB
-# -----------------------------
-
 @app.get("/search/semantic")
 def search_semantic(q: str, limit: int = 5):
 
@@ -137,6 +118,8 @@ def search_semantic(q: str, limit: int = 5):
         )
 
     try:
+        from app.vectorstore import semantic_search
+
         results = semantic_search(
             query=q,
             n_results=limit
@@ -161,10 +144,7 @@ def search_semantic(q: str, limit: int = 5):
         ) from e
 
 
-# -----------------------------
 # 6. Search Healthcare Questions
-# -----------------------------
-
 @app.post("/questions")
 def search_questions(data: Question):
     records = load_records()
@@ -177,10 +157,7 @@ def search_questions(data: Question):
     }
 
 
-# -----------------------------
 # 7. Chat with Gemini
-# -----------------------------
-
 @app.post("/chat", response_model=ChatResponse)
 def chat(data: ChatRequest):
 
@@ -191,6 +168,8 @@ def chat(data: ChatRequest):
         )
 
     try:
+        from app.llm import generate_response
+
         system_prompt = (PROMPT_DIR / "system.txt").read_text(
             encoding="utf-8"
         )
@@ -257,10 +236,7 @@ Return only valid JSON:
         ) from e
 
 
-# -----------------------------
 # 8. RAG Question Answering
-# -----------------------------
-
 @app.post("/ask")
 def ask(data: AskRequest):
 
@@ -291,20 +267,20 @@ def ask(data: AskRequest):
         ) from e
 
 
-# -----------------------------
 # 9. LangGraph Agent
-# -----------------------------
-
 @app.post("/agent")
 def run_langgraph_agent(data: AgentRequest):
 
-    config = {
-        "configurable": {
-            "thread_id": data.thread_id
-        }
-    }
-
     try:
+        from langgraph.types import Command
+
+        from app.graph import agent_graph
+
+        config = {
+            "configurable": {
+                "thread_id": data.thread_id
+            }
+        }
 
         # Resume an interrupted agent after approval/rejection
         if data.approval is not None:
