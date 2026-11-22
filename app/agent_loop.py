@@ -2,7 +2,6 @@
 import re
 
 from app.tools import cover_balance_tracker
-from app.vectorstore import semantic_search
 
 
 def run_agent(user_message):
@@ -40,6 +39,8 @@ def run_agent(user_message):
         }
 
     # Tool 2: RAG Search
+    from app.vectorstore import semantic_search
+
     results = semantic_search(
         query=user_message,
         n_results=5

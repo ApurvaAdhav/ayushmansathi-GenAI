@@ -1,26 +1,38 @@
 
 from pathlib import Path
 
-import chromadb
-
 from app.chunking import create_chunks
 from app.embed import generate_embeddings
 
 # --------------------------------------------------
-# 1. Initialize ChromaDB
+# 1. Initialize ChromaDB Only When Required
 # --------------------------------------------------
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = BASE_DIR / "data" / "chroma_db"
 
-client = chromadb.PersistentClient(path=str(DB_PATH))
+client = None
+collection = None
 
-collection = client.get_or_create_collection(
-    name="ayushmansathi_documents",
-    metadata={
-        "description": "AyushmanSathi healthcare document chunks"
-    }
-)
+
+def get_collection():
+    global client, collection
+
+    if collection is None:
+        import chromadb
+
+        client = chromadb.PersistentClient(
+            path=str(DB_PATH)
+        )
+
+        collection = client.get_or_create_collection(
+            name="ayushmansathi_documents",
+            metadata={
+                "description": "AyushmanSathi healthcare document chunks"
+            }
+        )
+
+    return collection
 
 
 # --------------------------------------------------
@@ -70,10 +82,9 @@ def expand_query(query):
 # --------------------------------------------------
 
 def store_chunks(chunk_size=1000, overlap=150):
-    """
-    Create chunks using the selected configuration
-    and rebuild the ChromaDB collection.
-    """
+    """Create chunks and store their embeddings in ChromaDB."""
+
+    collection = get_collection()
 
     chunks = create_chunks(
         chunk_size=chunk_size,
@@ -84,21 +95,18 @@ def store_chunks(chunk_size=1000, overlap=150):
         print("No chunks available to store.")
         return
 
-    # Delete existing chunks before rebuilding the index.
     existing = collection.get(include=["metadatas"])
     existing_ids = existing.get("ids", [])
 
     if existing_ids:
         collection.delete(ids=existing_ids)
 
-    # Prepare documents, embeddings and IDs.
     texts = [chunk["text"] for chunk in chunks]
 
     embeddings = generate_embeddings(texts)
 
     ids = [chunk["chunk_id"] for chunk in chunks]
 
-    # Prepare metadata.
     metadatas = [
         {
             "title": chunk["title"],
@@ -109,7 +117,6 @@ def store_chunks(chunk_size=1000, overlap=150):
         for chunk in chunks
     ]
 
-    # Store in ChromaDB.
     collection.upsert(
         ids=ids,
         documents=texts,
@@ -128,13 +135,12 @@ def store_chunks(chunk_size=1000, overlap=150):
 # --------------------------------------------------
 
 def semantic_search(query, n_results=5):
-    """
-    Retrieve the most relevant chunks using
-    semantic similarity.
-    """
+    """Retrieve relevant document chunks using semantic similarity."""
 
     if not query or not query.strip():
         raise ValueError("Search query cannot be empty.")
+
+    collection = get_collection()
 
     total_chunks = collection.count()
 
@@ -143,15 +149,12 @@ def semantic_search(query, n_results=5):
 
     n_results = min(n_results, total_chunks)
 
-    # Expand the query.
     expanded_query = expand_query(query)
 
-    # Generate query embedding.
     query_embedding = generate_embeddings(
         [expanded_query]
     )[0]
 
-    # Search ChromaDB.
     results = collection.query(
         query_embeddings=[query_embedding],
         n_results=n_results,
