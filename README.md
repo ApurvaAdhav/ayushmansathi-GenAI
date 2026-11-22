@@ -6,16 +6,69 @@
 
 AyushmanSathi is a Generative AI-based healthcare assistant designed to make reliable healthcare information more accessible and understandable. It uses Retrieval-Augmented Generation (RAG) to retrieve information from trusted healthcare documents and generate context-based responses.
 
-## Project Information
 
-| Component | Description |
+## Problem Statement
+
+Accessing reliable healthcare information can be difficult for patients and caregivers. Healthcare documents often contain complex information, making it challenging to find relevant rules, understand medical benefits, and get clear answers.
+
+## Proposed Solution
+
+AyushmanSathi is an AI-powered healthcare assistant that uses Generative AI, Retrieval-Augmented Generation (RAG), and LangGraph agents to provide context-based healthcare information.
+
+It helps users:
+- Retrieve relevant information from trusted healthcare documents.
+- Ask healthcare-related questions through a conversational interface.
+- Receive context-based answers with citations.
+- Track healthcare coverage and remaining balance.
+- Use a human approval workflow for package-related decisions.
+
+
+
+## Results
+
+| Feature | Result |
 |---|---|
-| Product Name | AyushmanSathi |
-| Domain | Healthcare and Generative AI |
-| Target Users | Patients, caregivers, and the general public |
-| Data Sources | WHO, MoHFW, and other trusted public healthcare resources |
-| Problem Statement | Difficulty accessing and understanding reliable healthcare information |
-| Proposed Solution | Conversational AI healthcare assistant |
+| Healthcare document retrieval | Implemented |
+| AI-powered question answering | Implemented |
+| RAG-based information retrieval | Implemented |
+| LangGraph agent workflow | Implemented |
+| API deployment | Live on Render |
+| Health check endpoint | Working |
+| Automated testing | 20 tests passed |
+| Code quality | Ruff checks passed |
+| Response caching | Implemented |
+| Input validation | Maximum 1,000 characters |
+
+
+## System Architecture
+
+```mermaid
+flowchart TD
+    A[User] --> B[Streamlit User Interface]
+    A --> C[FastAPI Backend]
+
+    B --> C
+
+    C --> D{Request Type}
+
+    D --> E[Smart Search]
+    D --> F[RAG Pipeline]
+    D --> G[LangGraph Agent]
+
+    E --> H[Healthcare Records]
+    F --> I[ChromaDB Vector Database]
+    I --> J[Semantic Retrieval]
+    J --> K[Gemini API]
+
+    G --> L[Agent Tools]
+    L --> M[Human Approval Workflow]
+
+    H --> N[Response]
+    K --> N
+    M --> N
+
+    N --> O[User]
+
 
 ## Key Features
 
@@ -176,6 +229,39 @@ streamlit run ui/app.py
 - **API Base URL:** https://ayushmansathi-api.onrender.com
 - **Health Check:** https://ayushmansathi-api.onrender.com/health
 - **Deployment Status:** Live
+  
+
+## Production Notes
+
+### Performance Monitoring
+- Request latency is measured using Python's performance timer.
+- Input, output, and total Gemini tokens are logged for each request.
+- Cache hits are recorded in application logs.
+
+### Response Caching
+- Implemented an LRU cache with a maximum capacity of 100 responses.
+- Repeated identical prompts reuse cached responses.
+- Cached responses avoid additional Gemini API calls.
+
+### Input Validation
+- Empty questions are rejected.
+- Maximum question length is limited to 1,000 characters.
+- Invalid inputs return HTTP 422.
+
+### Security Testing
+- Tested prompt injection attempts asking the assistant to reveal system prompts and secrets.
+- The tested request returned a healthcare-context response without revealing the requested instructions.
+
+### Observed Performance Results
+
+| Metric | Result |
+|---|---:|
+| First request latency | 9.18 seconds |
+| First request total tokens | 2,331 |
+| Cached request latency | 0.00 seconds |
+| Cached request tokens | 0 |
+| Cache capacity | 100 responses |
+| Maximum input length | 1,000 characters |
 
 
 ## Project Development

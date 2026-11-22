@@ -1,0 +1,3 @@
+- Developed **AyushmanSathi**, an AI-powered healthcare assistant using Python, FastAPI, Streamlit, and Google Gemini API to provide context-based healthcare information.
+- Implemented a **RAG pipeline** using ChromaDB and Sentence Transformers, integrating semantic search, document retrieval, citations, and a LangGraph-based agent workflow.
+- Improved application reliability through response caching, token and latency logging, input validation, automated testing, Docker, GitHub Actions CI, and Render deployment.
