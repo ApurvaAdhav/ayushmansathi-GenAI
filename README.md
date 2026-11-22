@@ -11,6 +11,7 @@ AyushmanSathi is a Generative AI-based healthcare assistant designed to make rel
 
 Accessing reliable healthcare information can be difficult for patients and caregivers. Healthcare documents often contain complex information, making it challenging to find relevant rules, understand medical benefits, and get clear answers.
 
+
 ## Proposed Solution
 
 AyushmanSathi is an AI-powered healthcare assistant that uses Generative AI, Retrieval-Augmented Generation (RAG), and LangGraph agents to provide context-based healthcare information.
@@ -21,7 +22,6 @@ It helps users:
 - Receive context-based answers with citations.
 - Track healthcare coverage and remaining balance.
 - Use a human approval workflow for package-related decisions.
-
 
 
 ## Results
@@ -68,7 +68,7 @@ flowchart TD
     M --> N
 
     N --> O[User]
-
+```
 
 ## Key Features
 
@@ -85,6 +85,7 @@ flowchart TD
 - FastAPI backend with REST APIs.
 - Streamlit-based interactive chat interface.
 - User feedback through thumbs up/down.
+
 
 ## Technology Stack
 
@@ -103,6 +104,7 @@ flowchart TD
 | API Testing | Swagger UI |
 | Version Control | Git and GitHub |
 
+
 ## RAG Pipeline
 
 1. Load healthcare documents.
@@ -112,6 +114,7 @@ flowchart TD
 5. Store embeddings in ChromaDB.
 6. Retrieve relevant information using semantic search.
 7. Generate context-based answers with citations.
+
 
 ## LangGraph Agent
 
@@ -123,6 +126,7 @@ The AI agent uses different tools based on user requests:
 - **Human Approval:** Requests approval when a planned package exceeds the remaining coverage.
 
 The approval workflow supports both approved and rejected outcomes.
+
 
 ## Evaluation Results
 
@@ -138,6 +142,7 @@ Two retrieval configurations were evaluated using 15 healthcare-related question
 
 Configuration B was selected based on its higher average keyword score.
 
+
 ## API Endpoints
 
 | Method | Endpoint | Description |
@@ -150,6 +155,7 @@ Configuration B was selected based on its higher average keyword score.
 | POST | `/chat` | Gemini-based chat |
 | POST | `/ask` | RAG-based question answering |
 | POST | `/agent` | LangGraph agent execution |
+
 
 ## How to Run
 
@@ -202,6 +208,7 @@ Open another terminal and run:
 streamlit run ui/app.py
 ```
 
+
 ### 7. Open the application
 
 - API Documentation: http://127.0.0.1:8001/docs
@@ -214,6 +221,7 @@ streamlit run ui/app.py
 
 ### Approval Rejected
 ![Approval Rejected](screenshots/approval_rejected.png)
+
 
 ## Future Scope
 
@@ -229,8 +237,8 @@ streamlit run ui/app.py
 - **API Base URL:** https://ayushmansathi-api.onrender.com
 - **Health Check:** https://ayushmansathi-api.onrender.com/health
 - **Deployment Status:** Live
-  
 
+  
 ## Production Notes
 
 ### Performance Monitoring
@@ -267,6 +275,7 @@ streamlit run ui/app.py
 ## Project Development
 
 Developed as part of the GenAI Training Program at Sanjivani.
+
 
 ## Repository
 
