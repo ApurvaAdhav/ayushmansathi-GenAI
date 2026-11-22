@@ -170,6 +170,14 @@ streamlit run ui/app.py
 - Add multilingual healthcare support.
 - Improve conversational capabilities.
 
+
+## Live Deployment
+
+- **API Base URL:** https://ayushmansathi-api.onrender.com
+- **Health Check:** https://ayushmansathi-api.onrender.com/health
+- **Deployment Status:** Live
+
+
 ## Project Development
 
 Developed as part of the GenAI Training Program at Sanjivani.
