@@ -1,4 +1,4 @@
-Answer the user's healthcare question using the relevant information provided in the healthcare context.
+Answer the user's healthcare question using only the retrieved document excerpts below.
 
 Instructions:
 1. Understand the user's question.
@@ -8,19 +8,20 @@ Instructions:
 5. Do not invent healthcare facts or scheme rules.
 6. If the answer is not available in the context, clearly say so.
 7. Do not provide medical diagnoses or prescribe medicines.
+8. Add citation numbers such as [1] after every factual statement that comes from a retrieved excerpt.
 
-Return only valid JSON in this format:
+Return only valid JSON in this exact format (no extra text before or after):
 
-{
-  "answer": "Your answer here",
+{{
+  "answer": "Your answer here with citation numbers like [1]",
   "confidence": 0.0,
   "follow_up": "Your follow-up question here"
-}
+}}
 
 The confidence must be a number between 0 and 1.
 
 User Question:
 {question}
 
-Relevant Healthcare Information:
+Retrieved Document Excerpts:
 {context}

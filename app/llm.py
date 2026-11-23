@@ -127,15 +127,14 @@ def generate_answer(
     system_prompt = load_prompt("system.txt")
     task_template = load_prompt(task_prompt)
 
-    formatted_prompt = task_template.format(
-        question=question,
-        context=context
+    # Use replace() instead of .format() so that JSON curly-brace
+    # examples inside the prompt files do not raise a KeyError.
+    formatted_prompt = (
+        task_template
+        .replace("{question}", question)
+        .replace("{context}", context)
     )
 
-    complete_prompt = f"""
-{system_prompt}
-
-{formatted_prompt}
-"""
+    complete_prompt = f"{system_prompt}\n\n{formatted_prompt}"
 
     return generate_response(complete_prompt)

@@ -1,5 +1,5 @@
-
 import json
+import re
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -23,10 +23,22 @@ class ChatRequest(BaseModel):
     task: str = "task1"
 
 
+class Citation(BaseModel):
+    citation_id: int
+    chunk_id: str
+    document: str
+    page: str
+    section: str = "Section not specified"
+    version: str = "Unknown"
+    source: str
+
+
 class ChatResponse(BaseModel):
     answer: str
     confidence: float = Field(ge=0, le=1)
     follow_up: str
+    citations: list[Citation] = Field(default_factory=list)
+    retrieved_chunks: int = 0
 
 
 class AskRequest(BaseModel):
@@ -52,6 +64,51 @@ def rag_ask_question(question, top_k=5):
         question=question,
         top_k=top_k
     )
+
+
+# Build citations from retrieved chunks
+def build_chat_citations(retrieved: list) -> list:
+    citations = []
+
+    for index, item in enumerate(retrieved, start=1):
+        metadata = item.get("metadata") or {}
+
+        citations.append({
+            "citation_id": index,
+            "chunk_id": item.get("chunk_id", ""),
+            "document": metadata.get(
+                "title", "Healthcare document"
+            ),
+            "page": str(metadata.get(
+                "page", "Page not specified"
+            )),
+            "section": str(metadata.get(
+                "section", "Section not specified"
+            )),
+            "version": str(metadata.get(
+                "version", "Unknown"
+            )),
+            "source": metadata.get("source", "")
+        })
+
+    return citations
+
+
+# Extract individual citation numbers,
+# including grouped citations such as [2, 3]
+def extract_citation_ids(answer: str) -> set[int]:
+    cited_ids = set()
+
+    citation_groups = re.findall(
+        r"\[(\d+(?:\s*,\s*\d+)*)\]",
+        answer
+    )
+
+    for group in citation_groups:
+        for value in group.split(","):
+            cited_ids.add(int(value.strip()))
+
+    return cited_ids
 
 
 # 1. Health Check
@@ -157,7 +214,7 @@ def search_questions(data: Question):
     }
 
 
-# 7. Chat with Gemini
+# 7. Chat with Gemini and Source Citations
 @app.post("/chat", response_model=ChatResponse)
 def chat(data: ChatRequest):
 
@@ -169,7 +226,9 @@ def chat(data: ChatRequest):
 
     try:
         from app.llm import generate_response
+        from app.vectorstore import semantic_search
 
+        # Load prompts
         system_prompt = (PROMPT_DIR / "system.txt").read_text(
             encoding="utf-8"
         )
@@ -178,16 +237,36 @@ def chat(data: ChatRequest):
             encoding="utf-8"
         )
 
-        records = smart_search(data.question)
-
-        context = "\n\n".join(
-            record["rule_topic"] + "\n" + record["rule_text"]
-            for record in records
+        # Retrieve relevant chunks from ChromaDB
+        retrieved = semantic_search(
+            query=data.question,
+            n_results=5
         )
+
+        # Build citations from the same retrieved chunks
+        citations = build_chat_citations(retrieved)
+
+        # Prepare context with citation numbers and metadata
+        context_parts = []
+
+        for index, item in enumerate(retrieved, start=1):
+            metadata = item.get("metadata") or {}
+
+            context_parts.append(
+                f"[{index}]\n"
+                f"Document: {metadata.get('title', 'Healthcare document')}\n"
+                f"Version: {metadata.get('version', 'Unknown')}\n"
+                f"Section: {metadata.get('section', 'Section not specified')}\n"
+                f"Page: {metadata.get('page', 'Not specified')}\n"
+                f"Content: {item.get('text', '')}"
+            )
+
+        context = "\n\n".join(context_parts)
 
         if not context:
             context = "No relevant healthcare information was found."
 
+        # Format task prompt
         formatted_task = (
             task_prompt
             .replace("{question}", data.question)
@@ -199,14 +278,26 @@ def chat(data: ChatRequest):
 
 {formatted_task}
 
+IMPORTANT CITATION RULES:
+
+1. Answer using only the retrieved document excerpts.
+2. Add citation numbers such as [1] after factual statements.
+3. Multiple citations may be grouped as [1, 2].
+4. Use only citation numbers provided in the retrieved excerpts.
+5. Do not invent document names, page numbers, sections, versions, or sources.
+6. If the excerpts do not contain enough information, clearly say so.
+7. Do not claim to verify personal PM-JAY eligibility.
+
 Return only valid JSON:
+
 {{
-    "answer": "Your answer",
+    "answer": "Your answer with citation numbers",
     "confidence": 0.0,
     "follow_up": "Your follow-up question"
 }}
 """
 
+        # Generate response
         response = generate_response(full_prompt)
 
         cleaned_response = (
@@ -217,10 +308,44 @@ Return only valid JSON:
 
         result = json.loads(cleaned_response)
 
+        answer = str(result["answer"]).strip()
+        confidence = float(result["confidence"])
+        follow_up = str(result["follow_up"]).strip()
+
+        # Validate confidence
+        if not 0 <= confidence <= 1:
+            raise ValueError(
+                "Confidence must be between 0 and 1."
+            )
+
+        # Extract all citation numbers from the answer
+        cited_ids = extract_citation_ids(answer)
+
+        # Return only citations actually referenced in the answer.
+        # If the LLM gave a real answer but forgot citation markers,
+        # attach all retrieved citations rather than returning none.
+        used_citations = [
+            citation
+            for citation in citations
+            if citation["citation_id"] in cited_ids
+        ]
+
+        answer_lower = answer.lower()
+        answer_says_dont_know = (
+            "i don't know" in answer_lower
+            or "i do not know" in answer_lower
+            or "not provide enough information" in answer_lower
+        )
+
+        if not used_citations and answer and not answer_says_dont_know:
+            used_citations = citations
+
         return ChatResponse(
-            answer=result["answer"],
-            confidence=float(result["confidence"]),
-            follow_up=result["follow_up"]
+            answer=answer,
+            confidence=confidence,
+            follow_up=follow_up,
+            citations=used_citations,
+            retrieved_chunks=len(retrieved)
         )
 
     except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:

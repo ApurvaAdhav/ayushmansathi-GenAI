@@ -159,28 +159,22 @@ def ask_question(question: str, top_k: int = 5) -> dict:
             }
 
     prompt = f"""
-You are AyushmanSathi, a healthcare information assistant.
+You are AyushmanSathi, a healthcare information assistant for Ayushman Bharat PM-JAY.
 
-Answer the user's question using the retrieved document excerpts.
+Answer the user's question using ONLY the retrieved document excerpts below.
+Do not use any knowledge outside these excerpts.
 
-IMPORTANT RULES:
-
-1. Read all the retrieved excerpts carefully before answering.
-2. The excerpts are the evidence. Do not ignore information that
-   directly answers the question.
-3. If an excerpt clearly contains the requested fact, answer using it.
-4. Do not say "I don't know" when the answer is clearly present.
-5. Do not use information outside the retrieved excerpts.
-6. If the excerpts do not contain enough information, answer:
+RULES:
+1. Read all retrieved excerpts carefully before answering.
+2. If an excerpt clearly contains the requested fact, answer using it.
+3. After every factual statement, add a citation number in square brackets, e.g. [1] or [2].
+   IMPORTANT: You MUST include at least one citation number if you give a real answer.
+4. Do not say "I don't know" if the answer is clearly present in the excerpts.
+5. If the excerpts truly do not contain enough information, reply with exactly:
    "I don't know. The available documents do not provide enough information."
-7. Add citation numbers such as [1] after factual statements.
-8. Do not claim to verify anyone's personal PM-JAY eligibility.
-9. Do not diagnose diseases or prescribe medicines.
-10. Keep the answer clear and concise.
-
-Example:
-If the question asks for the maximum PM-JAY coverage and the excerpts
-state ₹5,00,000 per family per year, answer with that amount.
+   and set supported to false.
+6. Do not claim to verify anyone's personal PM-JAY eligibility.
+7. Do not diagnose diseases or prescribe medicines.
 
 USER QUESTION:
 {question}
@@ -188,9 +182,9 @@ USER QUESTION:
 RETRIEVED DOCUMENT EXCERPTS:
 {context}
 
-Return ONLY valid JSON in this format:
+Return ONLY valid JSON in this exact format (no extra text before or after):
 {{
-    "answer": "Your answer with citation numbers",
+    "answer": "Your answer with citation numbers like [1] or [2]",
     "supported": true
 }}
 
@@ -217,7 +211,16 @@ If the excerpts do not support an answer, set supported to false.
         answer = str(result.get("answer", "")).strip()
         supported = result.get("supported", False)
 
-        if not answer or not supported:
+        # Treat an explicit "I don't know" answer as unsupported
+        # regardless of the supported flag.
+        answer_lower = answer.lower()
+        answer_says_dont_know = (
+            "i don't know" in answer_lower
+            or "i do not know" in answer_lower
+            or "not provide enough information" in answer_lower
+        )
+
+        if not answer or (not supported and answer_says_dont_know):
             return {
                 "question": question,
                 "answer": (
@@ -240,7 +243,13 @@ If the excerpts do not support an answer, set supported to false.
             if citation["citation_id"] in cited_ids
         ]
 
-        if not used_citations:
+        # If the LLM gave a real answer but omitted citation markers,
+        # attach all retrieved citations rather than discarding the answer.
+        if not used_citations and answer and not answer_says_dont_know:
+            used_citations = citations
+
+        # If neither the answer nor citations are usable, say so.
+        if not answer or not used_citations:
             return {
                 "question": question,
                 "answer": (

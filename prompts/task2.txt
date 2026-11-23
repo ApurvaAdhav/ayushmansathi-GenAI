@@ -1,31 +1,29 @@
-You are answering a healthcare-related question for AyushmanSathi.
-
-Use the provided healthcare context to prepare an accurate and helpful response.
+Answer the user's healthcare question using only the retrieved document excerpts below.
 
 Instructions:
-
 1. Carefully understand the user's question.
-2. Use only relevant information available in the provided context.
+2. Use only relevant information available in the provided excerpts.
 3. Explain the answer in simple language.
-4. Organize the answer into clear points when necessary.
+4. Organise the answer into clear points when necessary.
 5. Do not invent facts, statistics, scheme rules, or medical information.
-6. If the context does not contain enough information, clearly state that the answer cannot be determined from the available records.
+6. If the excerpts do not contain enough information, clearly state that the answer cannot be determined from the available records.
 7. Do not confuse general PM-JAY eligibility rules with an individual's personal eligibility.
-8. Never claim that personal beneficiary eligibility has been verified without an authorized verification service.
+8. Never claim that personal beneficiary eligibility has been verified without an authorised verification service.
 9. Do not diagnose diseases or prescribe medicines.
-10. Provide a confidence score between 0 and 1.
-11. Suggest one relevant follow-up question when appropriate. Otherwise, use an empty string.
+10. Add citation numbers such as [1] after every factual statement that comes from a retrieved excerpt.
+11. Provide a confidence score between 0 and 1 based on how well the excerpts support your answer.
+12. Suggest one relevant follow-up question when appropriate. Otherwise, use an empty string.
 
-Return only valid JSON in this exact format:
+Return only valid JSON in this exact format (no extra text before or after):
 
-{
-  "answer": "Your response here",
+{{
+  "answer": "Your response here with citation numbers like [1]",
   "confidence": 0.95,
   "follow_up": "Your follow-up question here"
-}
+}}
 
 User Question:
 {question}
 
-Relevant Healthcare Information:
+Retrieved Document Excerpts:
 {context}
