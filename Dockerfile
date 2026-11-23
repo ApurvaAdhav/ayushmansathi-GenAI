@@ -14,10 +14,8 @@ RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.l
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-COPY wheelhouse/ /app/wheelhouse/
 
-RUN python -m pip install --no-index --find-links=/app/wheelhouse -r requirements.txt
-
+RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 COPY supervisord.conf /etc/supervisor/conf.d/ayushmansathi.conf
