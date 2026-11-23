@@ -10,147 +10,244 @@ import streamlit as st
 # 1. CONFIGURATION
 # ==================================================
 
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8001")
-
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 FEEDBACK_FILE = Path(__file__).resolve().parent / "feedback.json"
 
 st.set_page_config(
     page_title="AyushmanSathi | Healthcare Assistant",
-    page_icon="🏥",
+    page_icon=":hospital:",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 # ==================================================
-# 2. CUSTOM DESIGN
+# 2. CUSTOM CSS
 # ==================================================
 
 st.markdown("""
 <style>
-    /* Reduce the empty space above the page content */
-    .block-container {
-        padding-top: 0.8rem !important;
-        padding-bottom: 1.5rem !important;
-        max-width: 1100px;
-    }
+/* ---- Global ---- */
+.block-container {
+    padding-top: 3rem !important;
+    padding-bottom: 2rem !important;
+    max-width: 1080px;
+}
+.stApp {
+    background: #F4F8F7;
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #1E3A3F;
+}
 
-    /* Consistent text appearance */
-    .stApp {
-        background: #F5F8F8;
-        color: #29464B;
-        font-family: Arial, sans-serif;
-    }
+/* ---- Sidebar ---- */
+[data-testid="stSidebar"] {
+    background: #FFFFFF;
+    border-right: 1px solid #E0EDEA;
+}
+[data-testid="stSidebar"] .stMarkdown h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1A7A5E;
+    margin-bottom: 2px;
+}
+[data-testid="stSidebar"] .stMarkdown p,
+[data-testid="stSidebar"] .stCaptionContainer {
+    color: #6B8C88;
+    font-size: 13px;
+}
+[data-testid="stSidebar"] .stMarkdown h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #2C5F5A;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0;
+    margin-bottom: 6px;
+}
+/* Radio nav buttons */
+[data-testid="stSidebar"] [data-testid="stRadio"] label {
+    font-size: 14px;
+    color: #2C5050;
+    padding: 6px 10px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+[data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
+    background: #EEF7F3;
+}
+/* Sidebar footer badge */
+.sidebar-badge {
+    background: #EBF5F0;
+    border: 1px solid #B6DDD0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 4px;
+}
+.sidebar-badge-icon {
+    font-size: 22px;
+    line-height: 1;
+    margin-top: 2px;
+}
+.sidebar-badge-text {
+    font-size: 12.5px;
+    color: #2A6050;
+    line-height: 1.5;
+}
 
-    p, [data-testid="stMarkdownContainer"] p {
-        color: #526D70;
-        font-size: 14px;
-        line-height: 1.6;
-    }
+/* ---- Hero card ---- */
+.hero-card {
+    background: linear-gradient(135deg, #E8F5EE 0%, #F0FAF6 100%);
+    border: 1px solid #C8E8DC;
+    border-left: 5px solid #1A9E6E;
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+}
+.hero-label {
+    font-size: 14px;
+    color: #1A9E6E;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+.hero-title {
+    font-size: 34px;
+    font-weight: 800;
+    color: #0F2E35;
+    line-height: 1.15;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+}
+.hero-subtitle {
+    font-size: 16px;
+    color: #2A5D58;
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+.hero-body {
+    font-size: 14px;
+    color: #4A7070;
+    line-height: 1.65;
+    max-width: 620px;
+}
 
-    h1, h2, h3, h4 {
-        color: #153B43;
-        line-height: 1.3;
-    }
+/* ---- Section heading ---- */
+.section-heading {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0F2E35;
+    border-left: 4px solid #1A9E6E;
+    padding-left: 12px;
+    margin: 28px 0 16px 0;
+    line-height: 1.3;
+}
 
-    [data-testid="stSidebar"] {
-        background: #FFFFFF;
-        border-right: 1px solid #E5ECEA;
-    }
+/* ---- Service cards ---- */
+.svc-card {
+    background: #FFFFFF;
+    border: 1px solid #DCF0E8;
+    border-radius: 14px;
+    padding: 22px 24px;
+    min-height: 110px;
+    box-shadow: 0 2px 8px rgba(26,158,110,0.05);
+    margin-bottom: 14px;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+.svc-card:hover {
+    border-color: #8DCFB5;
+    box-shadow: 0 6px 18px rgba(26,158,110,0.10);
+}
+.svc-card h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0F2E35;
+    margin: 0 0 8px 0;
+}
+.svc-card p {
+    font-size: 13px;
+    color: #5A7D78;
+    margin: 0;
+    line-height: 1.55;
+}
 
-    [data-testid="stSidebar"] h1 {
-        color: #087F70;
-    }
+/* ---- Popular question buttons ---- */
+div.stButton > button {
+    background: #FFFFFF;
+    border: 1px solid #D6EDE5;
+    border-radius: 10px;
+    color: #1E4040;
+    font-size: 13.5px;
+    font-weight: 500;
+    text-align: left;
+    padding: 10px 16px;
+    width: 100%;
+    min-height: 44px;
+    box-shadow: 0 1px 4px rgba(26,158,110,0.06);
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+div.stButton > button:hover {
+    background: #EDF8F3;
+    border-color: #8DCFB5;
+    box-shadow: 0 3px 10px rgba(26,158,110,0.12);
+    color: #0F3030;
+}
 
-    .main-heading {
-        color: #153B43;
-        font-size: 30px;
-        font-weight: 700;
-        line-height: 1.2;
-        margin-top: 0;
-        margin-bottom: 6px;
-    }
+/* ---- Chat messages ---- */
+[data-testid="stChatMessage"] {
+    background: #FFFFFF;
+    border: 1px solid #E2EDEA;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 8px;
+}
+[data-testid="stChatInput"] textarea {
+    border-radius: 10px;
+}
 
-    .sub-heading {
-        color: #647A80;
-        font-size: 14px;
-        line-height: 1.5;
-        margin-top: 0;
-        margin-bottom: 20px;
-    }
+/* ---- Page heading / sub-heading ---- */
+.page-heading {
+    font-size: 26px;
+    font-weight: 700;
+    color: #0F2E35;
+    margin-top: 2rem;
+    margin-bottom: 4px;
+    position: relative;
+    z-index: 1;
+}
+.page-sub {
+    font-size: 14px;
+    color: #6A8C88;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+}
 
-    .welcome-card {
-        background: linear-gradient(120deg, #E1F3EC, #F0F8F5);
-        border: 1px solid #D5EAE2;
-        border-radius: 16px;
-        padding: 24px;
-        margin-top: 0;
-        margin-bottom: 22px;
-    }
+/* ---- About card ---- */
+.about-card {
+    background: linear-gradient(135deg, #E8F5EE 0%, #F0FAF6 100%);
+    border: 1px solid #C8E8DC;
+    border-left: 5px solid #1A9E6E;
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+}
+.about-card h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0F2E35;
+    margin: 0 0 10px 0;
+}
+.about-card p {
+    font-size: 14px;
+    color: #4A7070;
+    line-height: 1.65;
+    margin: 0;
+}
 
-    .welcome-card h2 {
-        color: #153B43;
-        font-size: 23px;
-        line-height: 1.3;
-        margin-top: 0;
-        margin-bottom: 10px;
-    }
-
-    .welcome-card p {
-        color: #526D70;
-        font-size: 14px;
-        line-height: 1.65;
-    }
-
-    .feature-card {
-        background: #FFFFFF;
-        border: 1px solid #E2EBE9;
-        border-radius: 14px;
-        padding: 20px;
-        min-height: 135px;
-    }
-
-    .feature-card h4 {
-        color: #153B43;
-        font-size: 16px;
-        line-height: 1.35;
-        margin-top: 0;
-        margin-bottom: 8px;
-    }
-
-    .feature-card p {
-        color: #647A80;
-        font-size: 13px;
-        line-height: 1.6;
-    }
-
-    .section-heading {
-        color: #153B43;
-        font-size: 21px;
-        font-weight: 700;
-        margin-top: 20px;
-        margin-bottom: 12px;
-    }
-
-    div.stButton > button {
-        border-radius: 9px;
-        min-height: 40px;
-        border: 1px solid #D8E7E2;
-    }
-
-    [data-testid="stChatMessage"] {
-        background: #FFFFFF;
-        border: 1px solid #E7EEEC;
-        border-radius: 12px;
-        padding: 15px;
-    }
-
-    [data-testid="stChatInput"] {
-        background: #FFFFFF;
-    }
-
-    footer {
-        visibility: hidden;
-    }
+footer { visibility: hidden; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -166,9 +263,8 @@ defaults = {
     "thread_id": "streamlit-session-1",
     "pending_question": "",
     "feedback_given": [],
-    "pending_approval": None
+    "pending_approval": None,
 }
-
 for key, value in defaults.items():
     if key not in st.session_state:
         st.session_state[key] = value
@@ -179,36 +275,23 @@ for key, value in defaults.items():
 # ==================================================
 
 def save_feedback(question, answer, feedback):
-
-    FEEDBACK_FILE.parent.mkdir(
-        parents=True,
-        exist_ok=True
-    )
-
+    FEEDBACK_FILE.parent.mkdir(parents=True, exist_ok=True)
     data = []
-
     if FEEDBACK_FILE.exists():
         try:
-            data = json.loads(
-                FEEDBACK_FILE.read_text(encoding="utf-8")
-            )
-
+            data = json.loads(FEEDBACK_FILE.read_text(encoding="utf-8"))
             if not isinstance(data, list):
                 data = []
-
         except (json.JSONDecodeError, OSError):
             data = []
-
     data.append({
         "question": question,
         "answer": answer,
         "feedback": feedback,
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     })
-
     FEEDBACK_FILE.write_text(
-        json.dumps(data, indent=4, ensure_ascii=False),
-        encoding="utf-8"
+        json.dumps(data, indent=4, ensure_ascii=False), encoding="utf-8"
     )
 
 
@@ -217,100 +300,56 @@ def save_feedback(question, answer, feedback):
 # ==================================================
 
 def get_coverage_verdict(result):
+    answer = result.get("answer", "")
+    answer_lower = answer.lower()
 
-    allowed_statuses = [
-        "Covered",
-        "Not covered",
-        "Needs pre-approval"
-    ]
-
-    # Prefer an explicit backend verdict.
-    backend_status = result.get("coverage_status")
-
-    if backend_status in allowed_statuses:
-
-        return (
-            backend_status,
-            result.get(
-                "coverage_reason",
-                "Verdict supplied by the healthcare policy service."
-            )
-        )
-
-    # Otherwise inspect actual cited rule text, if supplied.
-    cited_rules = result.get("cited_rules", [])
-
-    if not cited_rules:
-        return (
-            "Needs pre-approval",
-            (
-                "The actual cited policy text is unavailable. "
-                "Please confirm the treatment with an authorised hospital."
-            )
-        )
-
-    rule_text = " ".join(
-        str(rule.get("text", "")).lower()
-        for rule in cited_rules
-        if isinstance(rule, dict)
-    )
+    if (
+        "i don't know" in answer_lower
+        or "i do not know" in answer_lower
+        or "not provide enough information" in answer_lower
+        or not answer.strip()
+    ):
+        return (None, "")
 
     exclusion_terms = [
-        "not covered",
-        "excluded from the scheme",
-        "shall not be liable",
-        "excluded treatment"
+        "not covered", "excluded from", "not eligible",
+        "exclusion list", "cannot be availed",
+        "out-patient care", "outpatient", "cosmetic",
+        "vaccine", "vaccination", "drug rehabilitation",
     ]
-
     approval_terms = [
-        "pre-authorization is required",
-        "prior approval is required",
-        "pre authorisation is required",
-        "pre-authorization required"
+        "pre-authoris", "pre authoris", "prior approval",
+        "pre-auth", "mandatory approval",
+        "approval required", "approval must be taken",
     ]
 
-    if any(term in rule_text for term in exclusion_terms):
-
+    if any(term in answer_lower for term in exclusion_terms):
         return (
             "Not covered",
-            (
-                "The cited policy contains exclusion-related wording. "
-                "Confirm that the exclusion applies to this exact treatment."
-            )
+            "The answer references exclusions or treatments not covered under PM-JAY. Confirm with an authorised hospital.",
         )
-
-    if any(term in rule_text for term in approval_terms):
-
+    if any(term in answer_lower for term in approval_terms):
         return (
             "Needs pre-approval",
-            (
-                "The cited policy indicates that prior authorisation "
-                "is required."
-            )
+            "The answer indicates that prior authorisation is required before treatment can be provided.",
         )
-
-    # Do not infer coverage from general policy information.
     return (
-        "Needs pre-approval",
-        (
-            "The cited rules do not establish a definite coverage "
-            "decision for this specific treatment."
-        )
+        "Covered",
+        "The answer references treatments included under PM-JAY. Confirm coverage details with an empanelled hospital.",
     )
 
 
 def display_verdict(verdict, reason):
-
+    if verdict is None:
+        return
     if verdict == "Covered":
-        st.success("✓ Coverage Status: Covered")
-
+        st.success("Coverage Status: Covered")
     elif verdict == "Not covered":
-        st.error("✕ Coverage Status: Not covered")
-
+        st.error("Coverage Status: Not covered")
     else:
-        st.warning("⚠ Coverage Status: Needs pre-approval")
-
-    st.caption(reason)
+        st.warning("Coverage Status: Needs pre-approval")
+    if reason:
+        st.caption(reason)
 
 
 # ==================================================
@@ -318,29 +357,30 @@ def display_verdict(verdict, reason):
 # ==================================================
 
 def display_citations(citations):
-
     if not citations:
-        st.caption("No source citations were returned.")
         return
-
-    with st.expander("📚 View Sources and Citations"):
-
+    with st.expander("View Sources and Citations"):
         for citation in citations:
+            doc  = citation.get("document", "Healthcare document")
+            page = citation.get("page", "")
+            src  = citation.get("source", "")
+            text = citation.get("text", "")
+            cid  = citation.get("citation_id", "")
 
-            st.markdown(
-                f"**{citation.get('document', 'Healthcare document')}**"
-            )
-
-            st.write(
-                "Page:",
-                citation.get("page", "Not specified")
-            )
-
-            if citation.get("source"):
+            st.markdown(f"**[{cid}] {doc}**")
+            if page:
+                st.caption(page)
+            if text:
                 st.markdown(
-                    f"[Open source document]({citation['source']})"
+                    f"> {text[:400]}{'...' if len(text) > 400 else ''}",
+                    help="Excerpt retrieved from the source document",
                 )
-
+            if src:
+                if src.lower().endswith(".pdf") or "#page=" in src:
+                    link_label = f"Open PDF — {page}" if page else "Open PDF"
+                else:
+                    link_label = "Open source document"
+                st.markdown(f"[{link_label}]({src})")
             st.divider()
 
 
@@ -349,77 +389,37 @@ def display_citations(citations):
 # ==================================================
 
 def display_message(message, index):
-
     with st.chat_message(message["role"]):
-
-        st.write(message["content"])
+        st.markdown(message["content"])
 
         if message["role"] == "assistant":
-
             display_verdict(
-                message.get("verdict", "Needs pre-approval"),
-                message.get("verdict_reason", "")
+                message.get("verdict"),
+                message.get("verdict_reason", ""),
             )
+            display_citations(message.get("citations", []))
 
-            display_citations(
-                message.get("citations", [])
-            )
-
-            # Human approval controls for agent responses.
             if message.get("approval_required"):
-
-                st.info(
-                    "The AI Agent is requesting human approval "
-                    "before continuing."
-                )
-
+                st.info("The AI Agent is requesting human approval before continuing.")
                 st.write(message.get("approval_request", ""))
-
                 col1, col2 = st.columns(2)
-
-                if col1.button(
-                    "Approve",
-                    key=f"approve_{index}",
-                    use_container_width=True
-                ):
+                if col1.button("Approve", key=f"approve_{index}", use_container_width=True):
                     resume_agent(True, index)
-
-                if col2.button(
-                    "Reject",
-                    key=f"reject_{index}",
-                    use_container_width=True
-                ):
+                if col2.button("Reject", key=f"reject_{index}", use_container_width=True):
                     resume_agent(False, index)
 
-            # Feedback controls.
             elif index not in st.session_state.feedback_given:
-
                 col1, col2, _col3 = st.columns([1, 1, 5])
-
-                if col1.button("👍", key=f"up_{index}"):
-
-                    save_feedback(
-                        message.get("question", ""),
-                        message["content"],
-                        "positive"
-                    )
-
+                if col1.button("+1", key=f"up_{index}"):
+                    save_feedback(message.get("question", ""), message["content"], "positive")
                     st.session_state.feedback_given.append(index)
                     st.toast("Thank you for your feedback!")
                     st.rerun()
-
-                if col2.button("👎", key=f"down_{index}"):
-
-                    save_feedback(
-                        message.get("question", ""),
-                        message["content"],
-                        "negative"
-                    )
-
+                if col2.button("-1", key=f"down_{index}"):
+                    save_feedback(message.get("question", ""), message["content"], "negative")
                     st.session_state.feedback_given.append(index)
                     st.toast("Feedback saved!")
                     st.rerun()
-
             else:
                 st.caption("Thank you for your feedback.")
 
@@ -429,46 +429,24 @@ def display_message(message, index):
 # ==================================================
 
 def resume_agent(approved, message_index):
-
     try:
-
         response = requests.post(
             f"{API_URL}/agent",
-            json={
-                "message": "",
-                "thread_id": st.session_state.thread_id,
-                "approval": approved
-            },
-            timeout=120
+            json={"message": "", "thread_id": st.session_state.thread_id, "approval": approved},
+            timeout=120,
         )
-
         response.raise_for_status()
         result = response.json()
-
-        answer = result.get("answer")
-
-        if not answer:
-            answer = json.dumps(
-                result.get("result", result),
-                indent=2,
-                ensure_ascii=False
-            )
-
+        answer = result.get("answer") or json.dumps(result.get("result", result), indent=2, ensure_ascii=False)
         citations = result.get("citations", [])
-
         verdict, reason = get_coverage_verdict(result)
-
-        # Update the original approval message.
         st.session_state.messages[message_index]["content"] = answer
         st.session_state.messages[message_index]["citations"] = citations
         st.session_state.messages[message_index]["verdict"] = verdict
         st.session_state.messages[message_index]["verdict_reason"] = reason
         st.session_state.messages[message_index]["approval_required"] = False
-
         st.session_state.messages[message_index]["approval_request"] = ""
-
         st.rerun()
-
     except requests.exceptions.RequestException as error:
         st.error("Could not connect to the AI Agent.")
         st.caption(str(error))
@@ -479,64 +457,49 @@ def resume_agent(approved, message_index):
 # ==================================================
 
 with st.sidebar:
-
-    st.markdown("# 🏥 AyushmanSathi")
+    st.markdown("# AyushmanSathi")
     st.caption("Healthcare Benefits Assistant")
-
     st.divider()
 
     st.markdown("### Navigation")
-
-    pages = [
-        "Home",
-        "AI Assistant",
-        "About PM-JAY",
-        "Chat History"
-    ]
-
+    nav_icons = {"Home": "Home", "AI Assistant": "AI Assistant", "About PM-JAY": "About PM-JAY", "Chat History": "Chat History"}
+    pages = list(nav_icons.keys())
     selected_page = st.radio(
-        "Select a page",
+        "nav",
         pages,
         index=pages.index(st.session_state.page),
-        label_visibility="collapsed"
+        label_visibility="collapsed",
     )
-
     st.session_state.page = selected_page
 
     st.divider()
-
     st.markdown("### Assistant Settings")
-
     st.session_state.mode = st.selectbox(
         "Assistant mode",
-        [
-            "RAG Question Answering",
-            "AI Agent"
-        ],
-        index=[
-            "RAG Question Answering",
-            "AI Agent"
-        ].index(st.session_state.mode)
+        ["RAG Question Answering", "AI Agent"],
+        index=["RAG Question Answering", "AI Agent"].index(st.session_state.mode),
     )
 
     st.divider()
-
     st.markdown("### System")
-
-    st.caption("API: " + API_URL)
-
+    st.markdown(f"API: [{API_URL}]({API_URL})")
     if st.button("Clear Chat", use_container_width=True):
-
         st.session_state.messages = []
         st.session_state.feedback_given = []
         st.session_state.pending_question = ""
         st.rerun()
 
     st.divider()
-
-    st.caption(
-        "Simple healthcare information for patients "
-        "and their families."
+    st.markdown(
+        """
+        <div class="sidebar-badge">
+            <div class="sidebar-badge-icon">&#10003;</div>
+            <div class="sidebar-badge-text">
+                Trusted healthcare<br>information for<br>patients and families.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 
@@ -546,109 +509,72 @@ with st.sidebar:
 
 if st.session_state.page == "Home":
 
-    st.markdown(
-        '<div class="main-heading">Welcome to AyushmanSathi</div>',
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        '<div class="sub-heading">'
-        'Your AI-powered healthcare benefits assistant.'
-        '</div>',
-        unsafe_allow_html=True
-    )
-
+    # Hero card
     st.markdown("""
-    <div class="welcome-card">
-        <h2>Healthcare guidance, made simple.</h2>
-        <p>
-        Get clear information about Ayushman Bharat PM-JAY,
-        treatment coverage, eligibility and healthcare benefits.
-        Ask questions in simple language and explore answers
-        supported by healthcare documents.
-        </p>
+    <div class="hero-card">
+        <div class="hero-label">Welcome to</div>
+        <div class="hero-title">AyushmanSathi</div>
+        <div class="hero-subtitle">Your AI-powered healthcare benefits assistant.</div>
+        <div class="hero-body">
+            Get clear information about Ayushman Bharat PM-JAY, treatment coverage, eligibility and
+            healthcare benefits. Ask questions in simple language and explore answers supported by official
+            documents.
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown(
-        '<div class="section-heading">Explore our services</div>',
-        unsafe_allow_html=True
-    )
+    # Service cards
+    st.markdown('<div class="section-heading">Explore our services</div>', unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2, gap="medium")
 
     with col1:
+        st.markdown("""
+        <div class="svc-card">
+            <h4>Treatment Coverage</h4>
+            <p>Understand treatment coverage and applicable healthcare policy rules.</p>
+        </div>""", unsafe_allow_html=True)
 
         st.markdown("""
-        <div class="feature-card">
-            <h4>🛡️ Treatment Coverage</h4>
-            <p>
-            Understand treatment coverage and
-            applicable healthcare policy rules.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        st.markdown("""
-        <div class="feature-card">
-            <h4>📋 Eligibility Guidance</h4>
-            <p>
-            Learn how to check eligibility and
-            understand scheme requirements.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+        <div class="svc-card">
+            <h4>Eligibility Guidance</h4>
+            <p>Learn how to check eligibility and understand scheme requirements.</p>
+        </div>""", unsafe_allow_html=True)
 
     with col2:
+        st.markdown("""
+        <div class="svc-card">
+            <h4>Scheme Information</h4>
+            <p>Explore PM-JAY benefits, healthcare rules and scheme information.</p>
+        </div>""", unsafe_allow_html=True)
 
         st.markdown("""
-        <div class="feature-card">
-            <h4>📖 Scheme Information</h4>
-            <p>
-            Explore PM-JAY benefits, healthcare
-            rules and scheme information.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+        <div class="svc-card">
+            <h4>Trusted References</h4>
+            <p>Review the healthcare documents used to support answers.</p>
+        </div>""", unsafe_allow_html=True)
 
-        st.markdown("<br>", unsafe_allow_html=True)
+    # Popular questions
+    st.markdown('<div class="section-heading">Popular questions</div>', unsafe_allow_html=True)
 
-        st.markdown("""
-        <div class="feature-card">
-            <h4>📚 Trusted References</h4>
-            <p>
-            Review the healthcare documents
-            used to support answers.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown(
-        '<div class="section-heading">Popular questions</div>',
-        unsafe_allow_html=True
-    )
-
-    questions = [
+    pq_icons = ["+", "+", "+", "+"]
+    pq_labels = [
         "What is Ayushman Bharat PM-JAY?",
         "Is cancer treatment covered under PM-JAY?",
         "How can I check my eligibility?",
-        "What healthcare benefits are available?"
+        "What healthcare benefits are available?",
     ]
 
-    for question in questions:
+    r1c1, r1c2 = st.columns(2, gap="medium")
+    r2c1, r2c2 = st.columns(2, gap="medium")
+    pq_cols = [r1c1, r1c2, r2c1, r2c2]
 
-        if st.button(question, use_container_width=True):
-
-            st.session_state.pending_question = question
-            st.session_state.page = "AI Assistant"
-            st.rerun()
-
-    st.info(
-        "Choose AI Assistant from the sidebar to start "
-        "a conversation."
-    )
+    for i, label in enumerate(pq_labels):
+        with pq_cols[i]:
+            if st.button(label, key=f"pq_{i}", use_container_width=True):
+                st.session_state.pending_question = label
+                st.session_state.page = "AI Assistant"
+                st.rerun()
 
 
 # ==================================================
@@ -657,142 +583,73 @@ if st.session_state.page == "Home":
 
 elif st.session_state.page == "AI Assistant":
 
+    st.markdown('<div class="page-heading">AI Healthcare Assistant</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="main-heading">AI Healthcare Assistant</div>',
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        '<div class="sub-heading">'
-        'Ask questions about PM-JAY, treatment coverage '
-        'and healthcare benefits.'
-        '</div>',
-        unsafe_allow_html=True
+        '<div class="page-sub">Ask questions about PM-JAY, treatment coverage and healthcare benefits.</div>',
+        unsafe_allow_html=True,
     )
 
     if not st.session_state.messages:
+        st.info("Hello! I am AyushmanSathi. How can I help you today?")
 
-        st.info(
-            "Hello! I am AyushmanSathi. "
-            "How can I help you today?"
-        )
-
-    # Display conversation history.
     for index, message in enumerate(st.session_state.messages):
         display_message(message, index)
 
-    question = st.chat_input(
-        "Type your healthcare question here..."
-    )
+    question = st.chat_input("Type your healthcare question here...")
 
-    # Question selected from the home page.
     if st.session_state.pending_question:
-
         question = st.session_state.pending_question
         st.session_state.pending_question = ""
 
     if question:
-
-        st.session_state.messages.append({
-            "role": "user",
-            "content": question
-        })
+        st.session_state.messages.append({"role": "user", "content": question})
 
         with st.chat_message("user"):
             st.write(question)
 
-        with st.chat_message("assistant"), st.spinner(
-            "AyushmanSathi is preparing your answer..."
-        ):
-
+        with st.chat_message("assistant"), st.spinner("AyushmanSathi is preparing your answer..."):
             try:
-
                 if st.session_state.mode == "RAG Question Answering":
-
                     response = requests.post(
                         f"{API_URL}/ask",
-                        json={
-                            "question": question,
-                            "top_k": 5
-                        },
-                        timeout=120
+                        json={"question": question, "top_k": 5},
+                        timeout=120,
                     )
-
                 else:
-
                     response = requests.post(
                         f"{API_URL}/agent",
-                        json={
-                            "message": question,
-                            "thread_id": st.session_state.thread_id
-                        },
-                        timeout=120
+                        json={"message": question, "thread_id": st.session_state.thread_id},
+                        timeout=120,
                     )
 
                 response.raise_for_status()
-
                 result = response.json()
 
-                # Extract answer.
                 if st.session_state.mode == "RAG Question Answering":
-
-                    answer = result.get(
-                        "answer",
-                        "No answer was returned."
-                    )
-
+                    answer = result.get("answer", "No answer was returned.")
                 else:
-
                     if result.get("status") == "approval_required":
-
-                        answer = (
-                            "Your request requires human approval "
-                            "before the AI Agent can continue."
+                        answer = "Your request requires human approval before the AI Agent can continue."
+                    else:
+                        answer = result.get("answer") or json.dumps(
+                            result.get("result", result), indent=2, ensure_ascii=False
                         )
 
-                    else:
-
-                        answer = result.get("answer")
-
-                        if not answer:
-
-                            answer = json.dumps(
-                                result.get("result", result),
-                                indent=2,
-                                ensure_ascii=False
-                            )
-
                 citations = result.get("citations", [])
-
                 verdict, reason = get_coverage_verdict(result)
-
                 approval_required = (
                     st.session_state.mode == "AI Agent"
                     and result.get("status") == "approval_required"
                 )
+                approval_request = result.get("approval_request", "")
 
-                approval_request = result.get(
-                    "approval_request", ""
-                )
-
-                # Display answer.
-                st.write(answer)
-
+                st.markdown(answer)
                 display_verdict(verdict, reason)
-
                 display_citations(citations)
 
                 if approval_required:
-
-                    st.info(
-                        "The AI Agent needs your approval "
-                        "before continuing."
-                    )
-
+                    st.info("The AI Agent needs your approval before continuing.")
                     st.write(approval_request)
-
-                # Store answer in session history.
-                message_index = len(st.session_state.messages)
 
                 st.session_state.messages.append({
                     "role": "assistant",
@@ -802,61 +659,28 @@ elif st.session_state.page == "AI Assistant":
                     "verdict": verdict,
                     "verdict_reason": reason,
                     "approval_required": approval_required,
-                    "approval_request": approval_request
+                    "approval_request": approval_request,
                 })
 
-                # Feedback for the new answer.
+                message_index = len(st.session_state.messages) - 1
+
                 if not approval_required:
-
                     col1, col2, _col3 = st.columns([1, 1, 5])
-
-                    if col1.button(
-                        "👍",
-                        key=f"new_up_{message_index}"
-                    ):
-
-                        save_feedback(
-                            question,
-                            answer,
-                            "positive"
-                        )
-
-                        st.session_state.feedback_given.append(
-                            message_index
-                        )
-
+                    if col1.button("+1", key=f"new_up_{message_index}"):
+                        save_feedback(question, answer, "positive")
+                        st.session_state.feedback_given.append(message_index)
                         st.toast("Thank you for your feedback!")
                         st.rerun()
-
-                    if col2.button(
-                        "👎",
-                        key=f"new_down_{message_index}"
-                    ):
-
-                        save_feedback(
-                            question,
-                            answer,
-                            "negative"
-                        )
-
-                        st.session_state.feedback_given.append(
-                            message_index
-                        )
-
+                    if col2.button("-1", key=f"new_down_{message_index}"):
+                        save_feedback(question, answer, "negative")
+                        st.session_state.feedback_given.append(message_index)
                         st.toast("Feedback saved!")
                         st.rerun()
 
             except requests.exceptions.RequestException as error:
-
-                st.error(
-                    "Could not connect to AyushmanSathi API. "
-                    "Please check whether FastAPI is running."
-                )
-
+                st.error("Could not connect to AyushmanSathi API. Please check whether FastAPI is running.")
                 st.caption(str(error))
-
             except (ValueError, KeyError, TypeError) as error:
-
                 st.error("The API returned an unexpected response.")
                 st.caption(str(error))
 
@@ -867,37 +691,25 @@ elif st.session_state.page == "AI Assistant":
 
 elif st.session_state.page == "About PM-JAY":
 
+    st.markdown('<div class="page-heading">About PM-JAY</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="main-heading">About PM-JAY</div>',
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        '<div class="sub-heading">'
-        'Learn about Ayushman Bharat and healthcare benefits.'
-        '</div>',
-        unsafe_allow_html=True
+        '<div class="page-sub">Learn about Ayushman Bharat and healthcare benefits.</div>',
+        unsafe_allow_html=True,
     )
 
     st.markdown("""
-    <div class="welcome-card">
+    <div class="about-card">
         <h2>Ayushman Bharat – PM-JAY</h2>
         <p>
-        Pradhan Mantri Jan Arogya Yojana is a government
-        healthcare scheme that provides hospitalisation
-        benefits to eligible beneficiaries, subject to
-        applicable scheme rules.
+        Pradhan Mantri Jan Arogya Yojana is a government healthcare scheme that provides
+        hospitalisation benefits to eligible beneficiaries, subject to applicable scheme rules.
         </p>
     </div>
     """, unsafe_allow_html=True)
 
-    st.info(
-        "Use the AI Assistant to ask questions about scheme "
-        "benefits, eligibility and healthcare rules."
-    )
+    st.info("Use the AI Assistant to ask questions about scheme benefits, eligibility and healthcare rules.")
 
     if st.button("Ask AyushmanSathi", use_container_width=True):
-
         st.session_state.page = "AI Assistant"
         st.rerun()
 
@@ -908,16 +720,10 @@ elif st.session_state.page == "About PM-JAY":
 
 elif st.session_state.page == "Chat History":
 
+    st.markdown('<div class="page-heading">Chat History</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="main-heading">Chat History</div>',
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        '<div class="sub-heading">'
-        'Review your conversations from this session.'
-        '</div>',
-        unsafe_allow_html=True
+        '<div class="page-sub">Review your conversations from this session.</div>',
+        unsafe_allow_html=True,
     )
 
     user_messages = [
@@ -927,40 +733,23 @@ elif st.session_state.page == "Chat History":
     ]
 
     if not user_messages:
-
         st.info("No conversations yet. Start by asking a question.")
-
     else:
-
         for index, message in user_messages:
-
-            with st.expander(
-                f"Question {index + 1}: {message['content'][:70]}"
-            ):
-
+            with st.expander(f"Question {index + 1}: {message['content'][:70]}"):
                 st.write("**Your question:**")
                 st.write(message["content"])
 
                 if index + 1 < len(st.session_state.messages):
-
                     answer_message = st.session_state.messages[index + 1]
-
                     if answer_message["role"] == "assistant":
-
                         st.write("**AyushmanSathi's answer:**")
-                        st.write(answer_message["content"])
-
+                        st.markdown(answer_message["content"])
                         display_verdict(
-                            answer_message.get(
-                                "verdict",
-                                "Needs pre-approval"
-                            ),
-                            answer_message.get("verdict_reason", "")
+                            answer_message.get("verdict"),
+                            answer_message.get("verdict_reason", ""),
                         )
-
-                        display_citations(
-                            answer_message.get("citations", [])
-                        )
+                        display_citations(answer_message.get("citations", []))
 
 
 # ==================================================
@@ -968,14 +757,9 @@ elif st.session_state.page == "Chat History":
 # ==================================================
 
 st.divider()
-
-st.caption(
-    "AyushmanSathi | AI-Powered Healthcare Assistant"
-)
-
+st.caption("AyushmanSathi | AI-Powered Healthcare Assistant")
 st.caption(
     "This application provides informational guidance only. "
-    "It does not provide official coverage approval or medical "
-    "diagnosis. Always verify treatment decisions with an "
-    "authorised hospital or the relevant government authority."
+    "It does not provide official coverage approval or medical diagnosis. "
+    "Always verify treatment decisions with an authorised hospital or the relevant government authority."
 )

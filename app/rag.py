@@ -28,17 +28,24 @@ def is_personal_eligibility_question(question: str) -> bool:
 
 
 def is_coverage_question(question: str) -> bool:
-    question = question.lower()
+    """Return True only for questions about the PM-JAY coverage amount/limit."""
+    q = question.lower()
 
-    return (
-        "coverage" in question
-        or "cover" in question
-        or "maximum amount" in question
-        or "health insurance amount" in question
-        or "annual coverage limit" in question
-        or "coverage limit" in question
-        or "annual limit" in question
+    # Must ask about the amount, limit, or maximum — not just contain "covered"
+    amount_terms = (
+        "how much",
+        "maximum amount",
+        "maximum coverage",
+        "coverage amount",
+        "coverage limit",
+        "annual coverage limit",
+        "annual limit",
+        "how many lakh",
+        "health insurance amount",
+        "5 lakh",
+        "5,00,000",
     )
+    return any(term in q for term in amount_terms)
 
 
 def get_source_based_coverage_answer(retrieved: list) -> str | None:
@@ -94,20 +101,42 @@ def build_citations(retrieved: list) -> list:
 
     for index, item in enumerate(retrieved, start=1):
         metadata = item.get("metadata") or {}
+        raw_page = metadata.get("page", "Page not specified")
+
+        # Build a direct PDF link with a page fragment when possible.
+        source_url = metadata.get("source", "")
+        page_url = _build_page_url(source_url, raw_page)
 
         citations.append({
             "citation_id": index,
             "chunk_id": item.get("chunk_id", ""),
-            "document": metadata.get(
-                "title", "Healthcare document"
-            ),
-            "page": metadata.get(
-                "page", "Page not specified"
-            ),
-            "source": metadata.get("source", ""),
+            "document": metadata.get("title", "Healthcare document"),
+            "page": raw_page,
+            "source": page_url,
+            "text": item.get("text", ""),
         })
 
     return citations
+
+
+def _build_page_url(source_url: str, raw_page: str) -> str:
+    """
+    For PDF sources, append #page=N so the browser opens the PDF
+    at the right page.  For non-PDF sources, return the URL unchanged.
+    """
+    if not source_url:
+        return ""
+
+    if not source_url.lower().endswith(".pdf"):
+        return source_url
+
+    # raw_page is stored as "PDF page 6" — extract the integer.
+    import re as _re
+    match = _re.search(r"\d+", raw_page)
+    if not match:
+        return source_url
+
+    return f"{source_url}#page={match.group()}"
 
 
 def ask_question(question: str, top_k: int = 5) -> dict:
@@ -180,28 +209,27 @@ def ask_question(question: str, top_k: int = 5) -> dict:
             }
 
     prompt = f"""
-You are AyushmanSathi, a healthcare information assistant.
+You are AyushmanSathi, a healthcare information assistant for Ayushman Bharat PM-JAY.
 
-Answer the user's question using the retrieved document excerpts.
+Answer the user's question using ONLY the retrieved document excerpts below.
 
-IMPORTANT RULES:
-
-1. Read all the retrieved excerpts carefully before answering.
-2. The excerpts are the evidence. Do not ignore information that
-   directly answers the question.
-3. If an excerpt clearly contains the requested fact, answer using it.
-4. Do not say "I don't know" when the answer is clearly present.
-5. Do not use information outside the retrieved excerpts.
-6. If the excerpts do not contain enough information, answer:
+RULES:
+1. Read every excerpt before answering. Do not skip any.
+2. If an excerpt clearly contains the requested fact, state it directly.
+3. Do NOT say "I don't know" when the answer is present in the excerpts.
+4. Do NOT use any knowledge outside the provided excerpts.
+5. After every factual statement, add the citation number in square brackets, e.g. [1] or [2].
+   You MUST include at least one citation number if you give a real answer.
+6. If the excerpts truly do not contain enough information, reply with exactly:
    "I don't know. The available documents do not provide enough information."
-7. Add citation numbers such as [1] after factual statements.
-8. Do not claim to verify anyone's personal PM-JAY eligibility.
-9. Do not diagnose diseases or prescribe medicines.
-10. Keep the answer clear and concise.
+7. Do not claim to verify anyone's personal PM-JAY eligibility.
+8. Do not diagnose diseases or prescribe medicines.
 
-Example:
-If the question asks for the maximum PM-JAY coverage and the excerpts
-state ₹5,00,000 per family per year, answer with that amount.
+FORMATTING:
+- Use plain sentences. Keep the answer concise and easy to read.
+- If the answer has multiple distinct points, use a numbered list.
+- Do not use headers or markdown bold (**text**).
+- Keep each point to one or two sentences.
 
 USER QUESTION:
 {question}
@@ -209,13 +237,13 @@ USER QUESTION:
 RETRIEVED DOCUMENT EXCERPTS:
 {context}
 
-Return ONLY valid JSON in this format:
+Return ONLY valid JSON (no text before or after):
 {{
-    "answer": "Your answer with citation numbers",
+    "answer": "Your answer here with citation numbers like [1]",
     "supported": true
 }}
 
-If the excerpts do not support an answer, set supported to false.
+If the excerpts do not support the answer, set supported to false.
 """
 
     try:

@@ -1,13 +1,14 @@
 fastapi
 uvicorn
-streamlit
 google-genai
 python-dotenv
 pydantic
 requests
 pypdf
-langchain
-langchain-community
+langchain==1.2.10
+langchain-community==0.4.2
 sentence-transformers
 chromadb
 langgraph
+streamlit==1.67.0
+pillow==13.0.0

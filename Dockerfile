@@ -1,13 +1,27 @@
+
 FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
+RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get update -o Acquire::Retries=3 && \
+    apt-get install -y --no-install-recommends \
+    nginx \
+    supervisor \
+    gettext-base \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt .
+COPY wheelhouse/ /app/wheelhouse/
+
+RUN python -m pip install --no-index --find-links=/app/wheelhouse -r requirements.txt
 
 COPY . .
 
-EXPOSE 8001
+COPY supervisord.conf /etc/supervisor/conf.d/ayushmansathi.conf
 
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8001}"]
+EXPOSE 10000
+
+CMD ["sh", "/app/start.sh"]

@@ -106,6 +106,9 @@ def expand_query(query):
         or "coverage limit" in query_lower
         or "annual limit" in query_lower
         or "maximum" in query_lower
+        or "how much" in query_lower
+        or "5 lakh" in query_lower
+        or "5,00,000" in query_lower
     ):
         return query + " " + QUERY_EXPANSIONS["coverage limit"]
 
