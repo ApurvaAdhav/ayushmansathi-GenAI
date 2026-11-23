@@ -35,6 +35,9 @@ def is_coverage_question(question: str) -> bool:
         or "cover" in question
         or "maximum amount" in question
         or "health insurance amount" in question
+        or "annual coverage limit" in question
+        or "coverage limit" in question
+        or "annual limit" in question
     )
 
 
@@ -42,30 +45,48 @@ def get_source_based_coverage_answer(retrieved: list) -> str | None:
     """
     Use a direct source-based answer when the retrieved text
     explicitly contains the PM-JAY annual coverage limit.
+    Also does a targeted fallback search if the retrieved chunks
+    don't happen to contain the coverage amount text.
     """
-    for item in retrieved:
-        text = item.get("text", "").lower()
+    def _check_items(items):
+        for item in items:
+            text = item.get("text", "").lower()
 
-        has_coverage_limit = (
-            "5,00,000" in text
-            or "5 lakh" in text
-            or "five lakh" in text
-        )
-
-        has_pmjay_context = (
-            "pm-jay" in text
-            or "ab pm-jay" in text
-            or "beneficiary" in text
-        )
-
-        if has_coverage_limit and has_pmjay_context:
-            return (
-                "Under the AB PM-JAY scheme, eligible beneficiary "
-                "families receive health coverage of up to ₹5,00,000 "
-                "per family per year for covered hospitalisation."
+            has_coverage_limit = (
+                "5,00,000" in text
+                or "5 lakh" in text
+                or "five lakh" in text
             )
 
-    return None
+            has_pmjay_context = (
+                "pm-jay" in text
+                or "ab pm-jay" in text
+                or "beneficiary" in text
+            )
+
+            if has_coverage_limit and has_pmjay_context:
+                return (
+                    "Under the AB PM-JAY scheme, eligible beneficiary "
+                    "families receive health coverage of up to \u20b95,00,000 "
+                    "per family per year for covered hospitalisation."
+                )
+        return None
+
+    # First try the already-retrieved chunks.
+    result = _check_items(retrieved)
+    if result:
+        return result
+
+    # Fallback: search specifically for the coverage amount.
+    try:
+        from app.vectorstore import semantic_search
+        targeted = semantic_search(
+            "PM-JAY 5 lakh annual coverage limit per family per year",
+            n_results=5
+        )
+        return _check_items(targeted)
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def build_citations(retrieved: list) -> list:
@@ -159,22 +180,28 @@ def ask_question(question: str, top_k: int = 5) -> dict:
             }
 
     prompt = f"""
-You are AyushmanSathi, a healthcare information assistant for Ayushman Bharat PM-JAY.
+You are AyushmanSathi, a healthcare information assistant.
 
-Answer the user's question using ONLY the retrieved document excerpts below.
-Do not use any knowledge outside these excerpts.
+Answer the user's question using the retrieved document excerpts.
 
-RULES:
-1. Read all retrieved excerpts carefully before answering.
-2. If an excerpt clearly contains the requested fact, answer using it.
-3. After every factual statement, add a citation number in square brackets, e.g. [1] or [2].
-   IMPORTANT: You MUST include at least one citation number if you give a real answer.
-4. Do not say "I don't know" if the answer is clearly present in the excerpts.
-5. If the excerpts truly do not contain enough information, reply with exactly:
+IMPORTANT RULES:
+
+1. Read all the retrieved excerpts carefully before answering.
+2. The excerpts are the evidence. Do not ignore information that
+   directly answers the question.
+3. If an excerpt clearly contains the requested fact, answer using it.
+4. Do not say "I don't know" when the answer is clearly present.
+5. Do not use information outside the retrieved excerpts.
+6. If the excerpts do not contain enough information, answer:
    "I don't know. The available documents do not provide enough information."
-   and set supported to false.
-6. Do not claim to verify anyone's personal PM-JAY eligibility.
-7. Do not diagnose diseases or prescribe medicines.
+7. Add citation numbers such as [1] after factual statements.
+8. Do not claim to verify anyone's personal PM-JAY eligibility.
+9. Do not diagnose diseases or prescribe medicines.
+10. Keep the answer clear and concise.
+
+Example:
+If the question asks for the maximum PM-JAY coverage and the excerpts
+state ₹5,00,000 per family per year, answer with that amount.
 
 USER QUESTION:
 {question}
@@ -182,9 +209,9 @@ USER QUESTION:
 RETRIEVED DOCUMENT EXCERPTS:
 {context}
 
-Return ONLY valid JSON in this exact format (no extra text before or after):
+Return ONLY valid JSON in this format:
 {{
-    "answer": "Your answer with citation numbers like [1] or [2]",
+    "answer": "Your answer with citation numbers",
     "supported": true
 }}
 
@@ -209,10 +236,10 @@ If the excerpts do not support an answer, set supported to false.
         result = json.loads(match.group())
 
         answer = str(result.get("answer", "")).strip()
-        supported = result.get("supported", False)
 
-        # Treat an explicit "I don't know" answer as unsupported
-        # regardless of the supported flag.
+        # Decide purely from the answer text — the "supported" flag
+        # from the LLM is unreliable and was causing correct answers
+        # to be dropped when the model set supported=false by mistake.
         answer_lower = answer.lower()
         answer_says_dont_know = (
             "i don't know" in answer_lower
@@ -220,7 +247,7 @@ If the excerpts do not support an answer, set supported to false.
             or "not provide enough information" in answer_lower
         )
 
-        if not answer or (not supported and answer_says_dont_know):
+        if not answer or answer_says_dont_know:
             return {
                 "question": question,
                 "answer": (
