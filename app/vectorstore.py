@@ -247,7 +247,16 @@ def semantic_search(query, n_results=5, distance_threshold=1.2):
 
     total_chunks = collection.count()
 
+    # Render starts with a fresh container, so the ignored ChromaDB
+    # directory is empty after deployment. Build the index from the
+    # committed healthcare records on the first semantic-search request.
     if total_chunks == 0:
+        print("ChromaDB is empty. Building the healthcare document index...")
+        store_chunks()
+        total_chunks = collection.count()
+
+    if total_chunks == 0:
+        print("No healthcare document chunks were available to index.")
         return []
 
     expanded_query = expand_query(query)
