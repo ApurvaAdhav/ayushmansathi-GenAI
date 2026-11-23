@@ -214,6 +214,40 @@ streamlit run ui/app.py
 - API Documentation: http://127.0.0.1:8001/docs
 - Streamlit UI: http://localhost:8501
 
+## Run with Docker
+
+Make sure [Docker Desktop](https://www.docker.com/products/docker-desktop/) is running, then:
+
+```bash
+# Clone the repository
+git clone https://github.com/ApurvaAdhav/ayushmansathi-GenAI.git
+cd ayushmansathi-GenAI
+```
+
+Create a `.env` file with your Gemini API key:
+
+```env
+GEMINI_API_KEY=your_api_key
+```
+
+Start both the API and the Streamlit UI with a single command:
+
+```bash
+docker compose up --build
+```
+
+| Service | URL |
+|---|---|
+| FastAPI backend | http://localhost:8000 |
+| API documentation | http://localhost:8000/docs |
+| Streamlit UI | http://localhost:8501 |
+
+To stop the containers:
+
+```bash
+docker compose down
+```
+
 ## Human Approval Workflow
 
 ### Approval Granted
