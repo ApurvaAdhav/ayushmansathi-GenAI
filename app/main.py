@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 from pathlib import Path
 
@@ -11,7 +12,32 @@ from app.smart_search import smart_search
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROMPT_DIR = BASE_DIR / "prompts"
 
+logger = logging.getLogger(__name__)
+
 app = FastAPI(title="AyushmanSathi API")
+
+
+@app.on_event("startup")
+def verify_vector_db() -> None:
+    """
+    Check the ChromaDB collection on startup and log its chunk count.
+    This catches a missing DB early (before any request hits /ask)
+    and gives Render's logs a clear signal of what state the DB is in.
+    """
+    try:
+        from app.vectorstore import get_collection
+        col = get_collection()
+        count = col.count()
+        if count == 0:
+            logger.warning(
+                "ChromaDB is EMPTY on startup. "
+                "data/chroma_db/ was not committed to git. "
+                "The first /ask request will trigger a rebuild."
+            )
+        else:
+            logger.info("ChromaDB ready: %d chunks loaded.", count)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("ChromaDB startup check failed: %s", exc)
 
 
 # ------------------------------------------------------------------

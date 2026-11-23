@@ -247,11 +247,12 @@ def semantic_search(query, n_results=5, distance_threshold=1.2):
 
     total_chunks = collection.count()
 
-    # Render starts with a fresh container, so the ignored ChromaDB
-    # directory is empty after deployment. Build the index from the
-    # committed healthcare records on the first semantic-search request.
     if total_chunks == 0:
-        print("ChromaDB is empty. Building the healthcare document index...")
+        # ChromaDB is empty. This should not happen in normal deployment
+        # because data/chroma_db/ is committed to the repository.
+        # If it does happen (e.g. a fresh clone without the DB files),
+        # rebuild from records.json now.
+        print("WARNING: ChromaDB is empty. Rebuilding from records.json...")
         store_chunks()
         total_chunks = collection.count()
 
