@@ -12,7 +12,7 @@ from google import genai
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Load environment variables
-load_dotenv(BASE_DIR / ".env", override=True)
+load_dotenv(BASE_DIR / ".env", override=False)
 
 API_KEY = os.getenv("GEMINI_API_KEY")
 MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
